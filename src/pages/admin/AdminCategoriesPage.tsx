@@ -1,0 +1,560 @@
+import React, { useState } from 'react';
+import { dbStore } from '../../services/dbStore';
+import { Category, DepartmentKey, Product } from '../../types';
+import { formatEGP } from '../../utils/formatters';
+import { 
+  FolderTree, 
+  Plus, 
+  Edit, 
+  Trash2, 
+  ChevronDown, 
+  ChevronUp, 
+  Package,
+  Layers,
+  ShoppingBag,
+  ExternalLink,
+  X,
+  Save,
+  CheckCircle2
+} from 'lucide-react';
+
+const DEPARTMENTS: { key: DepartmentKey; label: string }[] = [
+  { key: 'home_cleaning', label: 'المنزل والتنظيف' },
+  { key: 'electronics', label: 'الإلكترونيات وإكسسوارات الموبايل' },
+  { key: 'stationery', label: 'المكتبي والمدرسي' },
+  { key: 'toys', label: 'الألعاب والهدايا' },
+  { key: 'bags', label: 'الشنط' },
+  { key: 'accessories', label: 'الإكسسوارات' },
+  { key: 'beauty', label: 'التجميل والعناية الشخصية' },
+  { key: 'print_center', label: 'مركز الطباعة المتخصص' },
+];
+
+export const AdminCategoriesPage: React.FC = () => {
+  const [categories, setCategories] = useState<Category[]>(() => dbStore.getCategories());
+  const [products, setProducts] = useState<Product[]>(() => dbStore.getProducts());
+  const [editingCategory, setEditingCategory] = useState<Partial<Category> | null>(null);
+  const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
+  const [expandedCatIds, setExpandedCatIds] = useState<string[]>([]);
+  
+  // Quick Add Product Modal state
+  const [quickAddCat, setQuickAddCat] = useState<Category | null>(null);
+  const [productName, setProductName] = useState('');
+  const [productPrice, setProductPrice] = useState<number>(150);
+  const [productStock, setProductStock] = useState<number>(25);
+  const [productSku, setProductSku] = useState('');
+  const [productImage, setProductImage] = useState('');
+  const [productDesc, setProductDesc] = useState('');
+  const [quickAddNotice, setQuickAddNotice] = useState<string | null>(null);
+
+  const reloadData = () => {
+    setCategories(dbStore.getCategories());
+    setProducts(dbStore.getProducts());
+  };
+
+  const toggleExpand = (catId: string) => {
+    setExpandedCatIds(prev => 
+      prev.includes(catId) ? prev.filter(id => id !== catId) : [...prev, catId]
+    );
+  };
+
+  const handleOpenAddCategory = (parentId?: string, defaultDept?: DepartmentKey) => {
+    setEditingCategory({
+      parent_id: parentId || null,
+      name_ar: '',
+      slug: '',
+      department_key: defaultDept || 'home_cleaning',
+      description_ar: '',
+      is_active: true,
+      sort_order: 1,
+    });
+    setIsCategoryModalOpen(true);
+  };
+
+  const handleOpenEditCategory = (cat: Category) => {
+    setEditingCategory({ ...cat });
+    setIsCategoryModalOpen(true);
+  };
+
+  const handleDeleteCategory = (id: string, name: string) => {
+    if (window.confirm(`هل أنت متأكد من حذف الفئة "${name}"؟`)) {
+      dbStore.deleteCategory(id);
+      reloadData();
+    }
+  };
+
+  const handleSaveCategory = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!editingCategory?.name_ar || !editingCategory?.slug) return;
+
+    dbStore.saveCategory({
+      id: editingCategory.id,
+      parent_id: editingCategory.parent_id,
+      name_ar: editingCategory.name_ar,
+      slug: editingCategory.slug,
+      department_key: editingCategory.department_key as any,
+      description_ar: editingCategory.description_ar,
+      sort_order: editingCategory.sort_order || 0,
+      is_active: editingCategory.is_active ?? true,
+    });
+
+    reloadData();
+    setIsCategoryModalOpen(false);
+    setEditingCategory(null);
+  };
+
+  // --- Quick Add Product Handlers ---
+  const handleOpenQuickAddProduct = (cat: Category) => {
+    setQuickAddCat(cat);
+    setProductName('');
+    setProductPrice(150);
+    setProductStock(25);
+    setProductSku(`MSM-${Math.floor(100000 + Math.random() * 900000)}`);
+    setProductImage('');
+    setProductDesc('');
+  };
+
+  const handleSaveQuickProduct = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!quickAddCat || !productName.trim()) return;
+
+    const defaultImg = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80';
+    const finalImg = productImage.trim() || defaultImg;
+    const generatedSlug = `product-${Date.now()}`;
+
+    dbStore.saveProduct({
+      name_ar: productName.trim(),
+      slug: generatedSlug,
+      category_id: quickAddCat.id,
+      price_egp: Number(productPrice),
+      stock_quantity: Number(productStock),
+      sku: productSku.trim() || `MSM-${Math.floor(100000 + Math.random() * 900000)}`,
+      description_ar: productDesc.trim(),
+      images: [
+        {
+          id: `img-${Date.now()}`,
+          product_id: '',
+          image_url: finalImg,
+          is_primary: true,
+          sort_order: 0,
+        }
+      ],
+      is_active: true,
+      is_featured: false,
+    });
+
+    reloadData();
+    // Expand category to show the newly added product
+    if (!expandedCatIds.includes(quickAddCat.id)) {
+      setExpandedCatIds(prev => [...prev, quickAddCat.id]);
+    }
+    setQuickAddNotice(`تمت إضافة المنتج "${productName.trim()}" إلى قسم ${quickAddCat.name_ar} بنجاح!`);
+    setTimeout(() => setQuickAddNotice(null), 3500);
+    setQuickAddCat(null);
+  };
+
+  const getProductsForCategory = (catId: string) => {
+    return products.filter(p => p.category_id === catId);
+  };
+
+  return (
+    <div className="space-y-6 text-right font-arabic">
+      {/* Header */}
+      <div className="bg-white rounded-3xl border border-gray-100 shadow-xs p-6 flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+        <div>
+          <h1 className="text-xl sm:text-2xl font-black text-mall-900 flex items-center gap-2">
+            <FolderTree className="w-7 h-7 text-mall-900" />
+            <span>إدارة الأقسام والمنتجات ({categories.length})</span>
+          </h1>
+          <p className="text-xs text-gray-500 mt-1">
+            استعراض المنتجات المندرجة تحت كل قسم وإضافة منتجات مباشرة مع مزامنة المخزون اللحظية
+          </p>
+        </div>
+
+        <button
+          type="button"
+          onClick={() => handleOpenAddCategory()}
+          className="inline-flex items-center gap-1.5 py-2.5 px-5 bg-gold-500 hover:bg-gold-600 text-mall-950 font-bold rounded-xl text-xs transition-colors shadow-xs cursor-pointer self-start sm:self-auto"
+        >
+          <Plus className="w-4 h-4" />
+          <span>إضافة قسم جديد</span>
+        </button>
+      </div>
+
+      {quickAddNotice && (
+        <div className="p-4 bg-green-50 border border-green-200 text-green-800 text-xs font-bold rounded-2xl flex items-center gap-2 animate-fade-in shadow-xs">
+          <CheckCircle2 className="w-4 h-4 text-green-600 shrink-0" />
+          <span>{quickAddNotice}</span>
+        </div>
+      )}
+
+      {/* Categories Tree & Product Expansion */}
+      <div className="space-y-4">
+        {categories.map((cat) => {
+          const catProducts = getProductsForCategory(cat.id);
+          const isExpanded = expandedCatIds.includes(cat.id);
+
+          return (
+            <div key={cat.id} className="bg-white rounded-3xl border border-gray-100 shadow-card p-5 space-y-4 transition-all">
+              {/* Main Category Header Row */}
+              <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-100">
+                <div className="flex items-center gap-3">
+                  <span className="p-2.5 rounded-2xl bg-gray-50 text-mall-900 border border-gray-100 font-black text-sm">
+                    {cat.name_ar}
+                  </span>
+                  <div>
+                    <div className="flex items-center gap-2">
+                      <span className="font-mono text-[11px] text-gray-400">/{cat.slug}</span>
+                      <span className="text-[10px] bg-mall-100 text-mall-900 font-bold px-2 py-0.5 rounded-full">
+                        {cat.department_key}
+                      </span>
+                    </div>
+                    <span className="text-xs font-bold text-gray-600 mt-0.5 block">
+                      {catProducts.length} منتجات في هذا القسم
+                    </span>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 flex-wrap">
+                  {/* Quick Add Product Button */}
+                  <button
+                    type="button"
+                    onClick={() => handleOpenQuickAddProduct(cat)}
+                    className="py-1.5 px-3 bg-gold-50 hover:bg-gold-100 text-mall-950 border border-gold-300 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer shadow-2xs transition-colors"
+                    title="إضافة منتج جديد فوراً داخل هذا القسم"
+                  >
+                    <Plus className="w-3.5 h-3.5 text-gold-700" />
+                    <span>+ إضافة منتج بالقسم</span>
+                  </button>
+
+                  {/* Toggle Products Button */}
+                  <button
+                    type="button"
+                    onClick={() => toggleExpand(cat.id)}
+                    className="py-1.5 px-3 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 rounded-xl text-xs font-bold flex items-center gap-1.5 cursor-pointer transition-colors"
+                  >
+                    <Package className="w-3.5 h-3.5 text-gray-500" />
+                    <span>منتجات القسم ({catProducts.length})</span>
+                    {isExpanded ? <ChevronUp className="w-3.5 h-3.5" /> : <ChevronDown className="w-3.5 h-3.5" />}
+                  </button>
+
+                  {/* Add Subcategory */}
+                  <button
+                    type="button"
+                    onClick={() => handleOpenAddCategory(cat.id, cat.department_key)}
+                    className="py-1.5 px-3 bg-gray-50 hover:bg-gray-100 text-gray-700 border border-gray-200 rounded-xl text-xs font-bold flex items-center gap-1 cursor-pointer"
+                  >
+                    <Plus className="w-3 h-3" />
+                    <span>فئة فرعية</span>
+                  </button>
+
+                  {/* Edit Category */}
+                  <button
+                    type="button"
+                    onClick={() => handleOpenEditCategory(cat)}
+                    className="p-1.5 text-gray-400 hover:text-mall-900 rounded-lg cursor-pointer"
+                    title="تعديل بيانات القسم"
+                  >
+                    <Edit className="w-4 h-4" />
+                  </button>
+
+                  {/* Delete Category */}
+                  <button
+                    type="button"
+                    onClick={() => handleDeleteCategory(cat.id, cat.name_ar)}
+                    className="p-1.5 text-gray-400 hover:text-red-600 rounded-lg cursor-pointer"
+                    title="حذف القسم"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              </div>
+
+              {/* Subcategories list */}
+              {cat.children && cat.children.length > 0 && (
+                <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-2 pr-4 border-r-2 border-gold-400">
+                  {cat.children.map((sub) => {
+                    const subProducts = getProductsForCategory(sub.id);
+                    return (
+                      <div key={sub.id} className="p-2.5 rounded-2xl bg-gray-50 border border-gray-100 flex items-center justify-between text-xs">
+                        <div>
+                          <span className="font-bold text-gray-800 block">{sub.name_ar}</span>
+                          <span className="text-[10px] text-gray-400">{subProducts.length} منتجات</span>
+                        </div>
+                        <div className="flex items-center gap-1">
+                          <button
+                            type="button"
+                            onClick={() => handleOpenQuickAddProduct(sub)}
+                            className="p-1 text-gold-700 hover:bg-gold-100 rounded"
+                            title="إضافة منتج في هذه الفئة الفرعية"
+                          >
+                            <Plus className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleOpenEditCategory(sub)}
+                            className="p-1 text-gray-400 hover:text-gold-600 rounded"
+                          >
+                            <Edit className="w-3.5 h-3.5" />
+                          </button>
+                          <button
+                            type="button"
+                            onClick={() => handleDeleteCategory(sub.id, sub.name_ar)}
+                            className="p-1 text-gray-400 hover:text-red-600 rounded"
+                          >
+                            <Trash2 className="w-3.5 h-3.5" />
+                          </button>
+                        </div>
+                      </div>
+                    );
+                  })}
+                </div>
+              )}
+
+              {/* Expanded Products Section inside Category */}
+              {isExpanded && (
+                <div className="pt-3 border-t border-dashed border-gray-200 animate-fade-in space-y-3">
+                  <div className="flex items-center justify-between">
+                    <h4 className="text-xs font-black text-mall-900 flex items-center gap-1.5">
+                      <ShoppingBag className="w-4 h-4 text-mall-900" />
+                      <span>قائمة المنتجات التابعة لقسم ({cat.name_ar})</span>
+                    </h4>
+                    <button
+                      type="button"
+                      onClick={() => handleOpenQuickAddProduct(cat)}
+                      className="text-xs font-bold text-gold-700 hover:underline flex items-center gap-1 cursor-pointer"
+                    >
+                      <Plus className="w-3.5 h-3.5" />
+                      <span>إضافة منتج جديد الآن</span>
+                    </button>
+                  </div>
+
+                  {catProducts.length === 0 ? (
+                    <div className="p-6 bg-gray-50 rounded-2xl text-center text-xs text-gray-400 border border-gray-100">
+                      لا توجد منتجات مسجلة في هذا القسم حالياً. استخدم زر "+ إضافة منتج بالقسم" لإدراج أول منتج!
+                    </div>
+                  ) : (
+                    <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-3">
+                      {catProducts.map(prod => (
+                        <div key={prod.id} className="p-2.5 bg-gray-50 hover:bg-white rounded-2xl border border-gray-200 hover:border-gold-300 transition-all flex items-center gap-3 shadow-2xs">
+                          <img 
+                            src={prod.images?.[0]?.image_url || 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80'} 
+                            alt={prod.name_ar} 
+                            className="w-12 h-12 object-contain rounded-xl bg-white p-1 border border-gray-100 shrink-0" 
+                          />
+                          <div className="flex-1 min-w-0">
+                            <span className="font-bold text-xs text-gray-900 block truncate" title={prod.name_ar}>
+                              {prod.name_ar}
+                            </span>
+                            <span className="text-[10px] text-gray-400 font-mono block">SKU: {prod.sku}</span>
+                            <div className="flex items-center justify-between mt-1">
+                              <span className="font-black text-xs text-green-700">{formatEGP(prod.price_egp)}</span>
+                              <span className={`text-[10px] px-1.5 py-0.2 rounded font-bold ${
+                                prod.stock_quantity > 0 ? 'bg-green-100 text-green-800' : 'bg-red-100 text-red-800'
+                              }`}>
+                                المخزون: {prod.stock_quantity}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+          );
+        })}
+      </div>
+
+      {/* ==================== QUICK ADD PRODUCT MODAL ==================== */}
+      {quickAddCat && (
+        <div className="fixed inset-0 z-50 overflow-y-auto bg-black/60 flex items-center justify-center p-4">
+          <div className="bg-white rounded-3xl max-w-lg w-full p-6 shadow-2xl space-y-4 border border-gray-100 text-xs text-right">
+            <div className="flex items-center justify-between border-b border-gray-100 pb-3">
+              <div>
+                <h3 className="font-black text-base text-gray-900 flex items-center gap-2">
+                  <Plus className="w-5 h-5 text-gold-500" />
+                  <span>إضافة منتج سريع في قسم: {quickAddCat.name_ar}</span>
+                </h3>
+                <p className="text-[11px] text-gray-400 mt-0.5">سيتم ربط المنتج وتحديث المخزون والكتالوج تلقائياً</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => setQuickAddCat(null)}
+                className="text-gray-400 hover:text-gray-600 cursor-pointer"
+              >
+                <X className="w-5 h-5" />
+              </button>
+            </div>
+
+            <form onSubmit={handleSaveQuickProduct} className="space-y-4">
+              <div>
+                <label className="font-bold text-gray-700 block mb-1">اسم المنتج (بالعربية) *</label>
+                <input
+                  type="text"
+                  required
+                  placeholder="مثال: طقم علب حفظ طعام فاخرة 5 قطع"
+                  value={productName}
+                  onChange={(e) => setProductName(e.target.value)}
+                  className="w-full p-2.5 border border-gray-300 rounded-xl font-bold focus:ring-2 focus:ring-mall-900 focus:outline-hidden"
+                />
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="font-bold text-gray-700 block mb-1">سعر البيع (ج.م) *</label>
+                  <input
+                    type="number"
+                    min="1"
+                    required
+                    value={productPrice}
+                    onChange={(e) => setProductPrice(Number(e.target.value))}
+                    className="w-full p-2.5 border border-gray-300 rounded-xl font-bold text-green-700 focus:ring-2 focus:ring-mall-900 focus:outline-hidden"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-bold text-gray-700 block mb-1">كمية المخزون المتاحة *</label>
+                  <input
+                    type="number"
+                    min="0"
+                    required
+                    value={productStock}
+                    onChange={(e) => setProductStock(Number(e.target.value))}
+                    className="w-full p-2.5 border border-gray-300 rounded-xl font-bold focus:ring-2 focus:ring-mall-900 focus:outline-hidden"
+                  />
+                </div>
+              </div>
+
+              <div className="grid grid-cols-2 gap-3">
+                <div>
+                  <label className="font-bold text-gray-700 block mb-1">كود الصنف (SKU) *</label>
+                  <input
+                    type="text"
+                    required
+                    value={productSku}
+                    onChange={(e) => setProductSku(e.target.value)}
+                    className="w-full p-2.5 border border-gray-300 rounded-xl font-mono text-left focus:ring-2 focus:ring-mall-900 focus:outline-hidden"
+                  />
+                </div>
+
+                <div>
+                  <label className="font-bold text-gray-700 block mb-1">رابط صورة المنتج</label>
+                  <input
+                    type="text"
+                    placeholder="رابط الصورة (اختياري)"
+                    value={productImage}
+                    onChange={(e) => setProductImage(e.target.value)}
+                    className="w-full p-2.5 border border-gray-300 rounded-xl font-mono text-left focus:ring-2 focus:ring-mall-900 focus:outline-hidden"
+                  />
+                </div>
+              </div>
+
+              <div>
+                <label className="font-bold text-gray-700 block mb-1">وصف المنتج (اختياري)</label>
+                <textarea
+                  rows={2}
+                  value={productDesc}
+                  onChange={(e) => setProductDesc(e.target.value)}
+                  placeholder="مواصفات وخامة ومميزات المنتج..."
+                  className="w-full p-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-mall-900 focus:outline-hidden"
+                />
+              </div>
+
+              <div className="pt-2 flex gap-2">
+                <button
+                  type="submit"
+                  className="flex-1 py-2.5 bg-gold-500 hover:bg-gold-600 text-mall-950 font-black rounded-xl transition-colors shadow-xs cursor-pointer"
+                >
+                  إضافة المنتج وتحديث المخزون
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setQuickAddCat(null)}
+                  className="px-5 py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl font-bold transition-colors cursor-pointer"
+                >
+                  إلغاء
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+
+      {/* ==================== CATEGORY EDIT/ADD MODAL ==================== */}
+      {isCategoryModalOpen && editingCategory && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="absolute inset-0 bg-black/60" onClick={() => setIsCategoryModalOpen(false)} />
+          <div className="relative bg-white rounded-3xl max-w-md w-full p-6 shadow-2xl z-10 text-right space-y-4 animate-scale-up">
+            <h3 className="text-base font-bold text-mall-900 pb-2 border-b border-gray-100">
+              {editingCategory.id ? 'تعديل الفئة' : 'إضافة فئة جديدة'}
+            </h3>
+
+            <form onSubmit={handleSaveCategory} className="space-y-4">
+              <div>
+                <label className="block text-xs font-bold text-gray-800 mb-1">الاسم بالعربية *</label>
+                <input
+                  type="text"
+                  required
+                  value={editingCategory.name_ar}
+                  onChange={(e) => setEditingCategory({ ...editingCategory, name_ar: e.target.value })}
+                  className="w-full text-xs p-2.5 border border-gray-200 rounded-xl"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-800 mb-1">الرابط الدائم (Slug) *</label>
+                <input
+                  type="text"
+                  required
+                  value={editingCategory.slug}
+                  onChange={(e) => setEditingCategory({ ...editingCategory, slug: e.target.value })}
+                  className="w-full text-xs p-2.5 border border-gray-200 rounded-xl text-left font-mono"
+                />
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-800 mb-1">القسم الرئيسي المتبع له</label>
+                <select
+                  value={editingCategory.department_key}
+                  onChange={(e) => setEditingCategory({ ...editingCategory, department_key: e.target.value as any })}
+                  className="w-full text-xs p-2.5 border border-gray-200 rounded-xl bg-white"
+                >
+                  {DEPARTMENTS.map(d => (
+                    <option key={d.key} value={d.key}>{d.label}</option>
+                  ))}
+                </select>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-800 mb-1">الوصف المختصر</label>
+                <textarea
+                  rows={2}
+                  value={editingCategory.description_ar || ''}
+                  onChange={(e) => setEditingCategory({ ...editingCategory, description_ar: e.target.value })}
+                  className="w-full text-xs p-2.5 border border-gray-200 rounded-xl"
+                />
+              </div>
+
+              <div className="pt-2 flex gap-2">
+                <button
+                  type="button"
+                  onClick={() => setIsCategoryModalOpen(false)}
+                  className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-xs font-bold cursor-pointer"
+                >
+                  إلغاء
+                </button>
+                <button
+                  type="submit"
+                  className="flex-1 py-2.5 bg-gold-500 hover:bg-gold-600 text-mall-950 rounded-xl text-xs font-black shadow-xs cursor-pointer"
+                >
+                  حفظ التعديلات
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+};

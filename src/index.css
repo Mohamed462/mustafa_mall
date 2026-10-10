@@ -1,0 +1,88 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  --color-primary: #0F172A;
+  --color-accent: #C5A880;
+  --color-accent-hover: #D4AF37;
+  --color-canvas: #FAFAFB;
+  --color-emerald: #047857;
+}
+
+/* RTL Global Adjustments */
+html {
+  direction: rtl;
+  text-align: right;
+  scroll-behavior: smooth;
+  background-color: #FAFAFB;
+}
+
+body {
+  margin: 0;
+  font-family: 'IBM Plex Sans Arabic', 'Tajawal', 'Cairo', system-ui, -apple-system, sans-serif;
+  background-color: #FAFAFB;
+  color: #0F172A;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Selection Color */
+::selection {
+  background-color: #B89B5E;
+  color: #FFFFFF;
+}
+
+/* Custom Scrollbar - Sleek Luxury Track */
+::-webkit-scrollbar {
+  width: 7px;
+  height: 7px;
+}
+
+::-webkit-scrollbar-track {
+  background: #EFECE6;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #C4BCAC;
+  border-radius: 4px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #B89B5E;
+}
+
+/* Hide scrollbar for horizontal product ribbons */
+.no-scrollbar::-webkit-scrollbar {
+  display: none;
+}
+.no-scrollbar {
+  -ms-overflow-style: none;
+  scrollbar-width: none;
+}
+
+/* Image Transitions */
+img {
+  image-rendering: auto;
+}
+
+/* Keyboard Accessibility Focus */
+a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
+  outline: 2px solid #B89B5E;
+  outline-offset: 2px;
+}
+
+/* Luxury Carousel Segmented Progress Animation */
+@keyframes progress {
+  from {
+    width: 0%;
+  }
+  to {
+    width: 100%;
+  }
+}
+
+.animate-progress {
+  animation: progress linear forwards;
+}

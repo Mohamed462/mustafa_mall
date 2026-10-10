@@ -1,0 +1,50 @@
+import React from 'react';
+import { useStoreSettings } from '../../context/StoreSettingsContext';
+import { Phone, MessageCircle, ShieldCheck } from 'lucide-react';
+import { getWhatsAppUrl } from '../../utils/formatters';
+
+export const AnnouncementBar: React.FC = () => {
+  const { settings } = useStoreSettings();
+
+  if (!settings.is_announcement_enabled) return null;
+
+  return (
+    <div className="bg-[#0A0A0B] text-gray-300 text-xs py-2 px-4 border-b border-[#1C2526]">
+      <div className="max-w-7xl mx-auto flex flex-col sm:flex-row items-center justify-between gap-2">
+        <div className="flex items-center gap-2.5">
+          <span className="inline-flex items-center justify-center bg-[#B89B5E] text-[#0A0A0B] font-black px-2.5 py-0.5 rounded text-[10px] tracking-wide shadow-xs">
+            حصرياً
+          </span>
+          <p className="font-semibold text-gray-200 text-center sm:text-right text-xs">
+            {settings.announcement_text_ar}
+          </p>
+        </div>
+
+        <div className="flex items-center gap-5 text-xs text-gray-300">
+          <div className="hidden md:flex items-center gap-1.5 text-gray-300">
+            <ShieldCheck className="w-3.5 h-3.5 text-[#B89B5E]" />
+            <span>منتجات أصلية 100% ومضمونة</span>
+          </div>
+
+          <a 
+            href={getWhatsAppUrl(settings.whatsapp_number, 'مرحباً، أود الاستفسار عن منتجات مول المصطفى')}
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="flex items-center gap-1.5 hover:text-[#D4AF37] transition-colors"
+          >
+            <MessageCircle className="w-3.5 h-3.5 text-emerald-400" />
+            <span>تواصل عبر واتساب</span>
+          </a>
+
+          <a 
+            href={`tel:${settings.phone}`}
+            className="flex items-center gap-1.5 hover:text-[#D4AF37] transition-colors font-mono"
+          >
+            <Phone className="w-3.5 h-3.5 text-[#B89B5E]" />
+            <span>{settings.phone}</span>
+          </a>
+        </div>
+      </div>
+    </div>
+  );
+};
