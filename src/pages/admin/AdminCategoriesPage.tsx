@@ -93,6 +93,9 @@ export const AdminCategoriesPage: React.FC = () => {
       slug: editingCategory.slug,
       department_key: editingCategory.department_key as any,
       description_ar: editingCategory.description_ar,
+      image_url: editingCategory.image_url,
+      custom_link: editingCategory.custom_link,
+      hide_title: editingCategory.hide_title ?? false,
       sort_order: editingCategory.sort_order || 0,
       is_active: editingCategory.is_active ?? true,
     });
@@ -527,6 +530,58 @@ export const AdminCategoriesPage: React.FC = () => {
               </div>
 
               <div>
+                <label className="block text-xs font-bold text-gray-800 mb-1">رابط صورة الغلاف أو البوستر (Image URL)</label>
+                <div className="flex gap-2 items-center">
+                  <input
+                    type="text"
+                    placeholder="https://images.unsplash.com/... أو /images/banners/..."
+                    value={editingCategory.image_url || ''}
+                    onChange={(e) => setEditingCategory({ ...editingCategory, image_url: e.target.value })}
+                    className="flex-1 text-xs p-2.5 border border-gray-200 rounded-xl font-mono text-left"
+                  />
+                  {editingCategory.image_url && (
+                    <img 
+                      src={editingCategory.image_url} 
+                      alt="معاينة" 
+                      className="w-10 h-10 rounded-lg object-cover border border-gray-200 shrink-0"
+                      onError={(e) => { e.currentTarget.style.display = 'none'; }}
+                    />
+                  )}
+                </div>
+                <span className="text-[10px] text-gray-400 mt-0.5 block">يمكنك وضع رابط صورة أو بوستر جاهز تم تصميمه للقسم.</span>
+              </div>
+
+              <div>
+                <label className="block text-xs font-bold text-gray-800 mb-1">رابط التحويل المخصص عند النقر (Target Link)</label>
+                <input
+                  type="text"
+                  placeholder="مثال: /offers أو /print-center أو رابط خارجي (اختياري)"
+                  value={editingCategory.custom_link || ''}
+                  onChange={(e) => setEditingCategory({ ...editingCategory, custom_link: e.target.value })}
+                  className="w-full text-xs p-2.5 border border-gray-200 rounded-xl font-mono text-left"
+                />
+                <span className="text-[10px] text-gray-400 mt-0.5 block">إذا ترك فارغاً، يتم التوجيه لصفحة تصفح منتجات القسم تلقائياً.</span>
+              </div>
+
+              {/* Pure Image / Hide Title Toggle */}
+              <div className="p-3 bg-gray-50 rounded-2xl border border-gray-200">
+                <label className="flex items-start gap-3 cursor-pointer">
+                  <input
+                    type="checkbox"
+                    checked={editingCategory.hide_title ?? false}
+                    onChange={(e) => setEditingCategory({ ...editingCategory, hide_title: e.target.checked })}
+                    className="mt-0.5 rounded text-[#08606B] focus:ring-[#08606B]"
+                  />
+                  <div>
+                    <span className="text-xs font-bold text-gray-900 block">إلغاء الكتابة وعرض كـ (بوستر صور فقط)</span>
+                    <span className="text-[11px] text-gray-500 block leading-relaxed">
+                      عند التفعيل، لن يظهر اسم القسم أو النص الشفاف فوق الصورة، وسيتم عرض البوستر بصرياً بنقاء 100%، وعند النقر عليه ينقل العميل للرابط المحدد مباشرةً.
+                    </span>
+                  </div>
+                </label>
+              </div>
+
+              <div>
                 <label className="block text-xs font-bold text-gray-800 mb-1">الوصف المختصر</label>
                 <textarea
                   rows={2}
@@ -540,13 +595,13 @@ export const AdminCategoriesPage: React.FC = () => {
                 <button
                   type="button"
                   onClick={() => setIsCategoryModalOpen(false)}
-                  className="flex-1 py-2.5 border border-gray-200 text-gray-600 rounded-xl text-xs font-bold cursor-pointer"
+                  className="flex-1 py-2.5 border border-gray-200 hover:bg-gray-50 text-gray-600 rounded-xl text-xs font-bold transition-colors cursor-pointer"
                 >
                   إلغاء
                 </button>
                 <button
                   type="submit"
-                  className="flex-1 py-2.5 bg-gold-500 hover:bg-gold-600 text-mall-950 rounded-xl text-xs font-black shadow-xs cursor-pointer"
+                  className="flex-1 py-2.5 bg-[#08606B] hover:bg-[#0b7c8a] text-white rounded-xl text-xs font-black shadow-md shadow-[#08606B]/20 transition-all cursor-pointer"
                 >
                   حفظ التعديلات
                 </button>

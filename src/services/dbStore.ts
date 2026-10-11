@@ -326,6 +326,8 @@ export const dbStore = {
       is_active: category.is_active ?? true,
       is_featured: category.is_featured ?? false,
       children: category.children || [],
+      custom_link: category.custom_link || '',
+      hide_title: category.hide_title ?? false,
     };
 
     if (newCat.parent_id) {

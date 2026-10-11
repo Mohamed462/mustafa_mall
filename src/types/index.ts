@@ -24,6 +24,8 @@ export interface Category {
   is_featured: boolean;
   department_key: DepartmentKey;
   children?: Category[];
+  custom_link?: string;
+  hide_title?: boolean;
 }
 
 export interface Brand {
@@ -284,6 +286,7 @@ export interface StoreSettings {
   is_cod_enabled: boolean;
   announcement_text_ar: string;
   is_announcement_enabled: boolean;
+  category_display_style?: 'images_only' | 'overlay' | 'minimal';
 }
 
 export interface Coupon {
