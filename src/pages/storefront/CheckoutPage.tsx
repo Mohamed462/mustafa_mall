@@ -15,8 +15,12 @@ import {
   Wallet, 
   Banknote, 
   ArrowLeft, 
-  AlertCircle 
+  AlertCircle,
+  Tag,
+  Check,
+  Trash2
 } from 'lucide-react';
+import { TextureButton } from '../../components/common/TextureButton';
 
 const EGYPTIAN_GOVERNORATES = [
   'القاهرة',
@@ -47,7 +51,17 @@ const EGYPTIAN_GOVERNORATES = [
 
 export const CheckoutPage: React.FC = () => {
   const navigate = useNavigate();
-  const { cartItems, subtotal, shippingFee, discount, total, appliedCoupon, clearCart } = useCart();
+  const { 
+    cartItems, 
+    subtotal, 
+    shippingFee, 
+    discount, 
+    total, 
+    appliedCoupon, 
+    applyCoupon, 
+    removeCoupon, 
+    clearCart 
+  } = useCart();
   const { settings } = useStoreSettings();
   const { currentUser, isAuthenticated } = useAuth();
 
@@ -59,6 +73,34 @@ export const CheckoutPage: React.FC = () => {
   const [address, setAddress] = useState('');
   const [notes, setNotes] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash_on_delivery');
+
+  // Coupon Code state
+  const [couponInput, setCouponInput] = useState('');
+  const [couponFeedback, setCouponFeedback] = useState<{ type: 'success' | 'error'; message: string } | null>(null);
+  const [isApplyingCoupon, setIsApplyingCoupon] = useState(false);
+
+  const handleApplyCoupon = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!couponInput.trim()) {
+      setCouponFeedback({ type: 'error', message: 'يرجى كتابة كود الخصم أولاً' });
+      return;
+    }
+    setIsApplyingCoupon(true);
+    const result = applyCoupon(couponInput.trim());
+    setIsApplyingCoupon(false);
+    if (result.success) {
+      setCouponFeedback({ type: 'success', message: result.message });
+      setCouponInput('');
+    } else {
+      setCouponFeedback({ type: 'error', message: result.message });
+    }
+  };
+
+  const handleRemoveCoupon = () => {
+    removeCoupon();
+    setCouponFeedback(null);
+    setCouponInput('');
+  };
 
   const [errorMsg, setErrorMsg] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
@@ -409,47 +451,138 @@ export const CheckoutPage: React.FC = () => {
               })}
             </div>
 
+            {/* Promo / Coupon Code Section */}
+            <div className="pt-3 border-t border-gray-100 space-y-2.5">
+              <div className="flex items-center justify-between text-xs font-bold text-gray-800">
+                <span className="flex items-center gap-1.5 text-[#04383f]">
+                  <Tag className="w-3.5 h-3.5 text-[#08606B]" />
+                  <span>كود الخصم أو القسيمة</span>
+                </span>
+                {!appliedCoupon && (
+                  <button
+                    type="button"
+                    onClick={() => {
+                      setCouponInput('MOSTAFA10');
+                      setCouponFeedback(null);
+                    }}
+                    className="text-[10px] text-[#08606B] font-mono hover:underline cursor-pointer bg-[rgba(8,96,107,0.08)] px-2 py-0.5 rounded-full"
+                  >
+                    جرب: MOSTAFA10
+                  </button>
+                )}
+              </div>
+
+              {appliedCoupon ? (
+                <div className="p-3 bg-emerald-50 border border-emerald-200 rounded-2xl flex items-center justify-between animate-fade-in shadow-xs">
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-xl bg-emerald-100 text-emerald-700 flex items-center justify-center shrink-0">
+                      <Check className="w-4 h-4 stroke-[3]" />
+                    </div>
+                    <div>
+                      <div className="flex items-center gap-2">
+                        <span className="font-mono font-black text-xs text-emerald-950">
+                          {appliedCoupon.code}
+                        </span>
+                        <span className="text-[10px] bg-emerald-200 text-emerald-800 px-1.5 py-0.2 rounded font-bold">
+                          تم التطبيق
+                        </span>
+                      </div>
+                      <span className="text-[11px] text-emerald-700 font-medium block mt-0.5">
+                        خصم {appliedCoupon.discount_type === 'percentage' ? `${appliedCoupon.discount_value}%` : `${appliedCoupon.discount_value} ج.م`} على الطلب
+                      </span>
+                    </div>
+                  </div>
+                  <button
+                    type="button"
+                    onClick={handleRemoveCoupon}
+                    className="p-1.5 text-gray-400 hover:text-rose-600 hover:bg-rose-50 rounded-lg transition-colors cursor-pointer"
+                    title="إزالة الكوبون"
+                  >
+                    <Trash2 className="w-4 h-4" />
+                  </button>
+                </div>
+              ) : (
+                <div className="space-y-1.5">
+                  <div className="flex items-center gap-2">
+                    <input
+                      type="text"
+                      value={couponInput}
+                      onChange={(e) => {
+                        setCouponInput(e.target.value.toUpperCase());
+                        setCouponFeedback(null);
+                      }}
+                      placeholder="أدخل كود الخصم (مثال: MOSTAFA10)"
+                      className="flex-1 text-xs p-2.5 bg-gray-50 border border-gray-200 rounded-xl focus:outline-none focus:border-[#08606B] focus:bg-white font-mono uppercase tracking-wider text-right transition-colors"
+                    />
+                    <TextureButton
+                      type="button"
+                      variant="primary"
+                      size="sm"
+                      onClick={handleApplyCoupon}
+                      disabled={isApplyingCoupon || !couponInput.trim()}
+                      className="shrink-0 text-xs px-4 py-2 font-bold cursor-pointer"
+                    >
+                      {isApplyingCoupon ? 'تحقق...' : 'تطبيق'}
+                    </TextureButton>
+                  </div>
+                </div>
+              )}
+
+              {couponFeedback && (
+                <div className={`p-2.5 rounded-xl text-xs font-bold flex items-center gap-2 animate-fade-in ${
+                  couponFeedback.type === 'success' 
+                    ? 'bg-emerald-50 text-emerald-800 border border-emerald-200' 
+                    : 'bg-rose-50 text-rose-700 border border-rose-200'
+                }`}>
+                  <AlertCircle className="w-4 h-4 shrink-0" />
+                  <span>{couponFeedback.message}</span>
+                </div>
+              )}
+            </div>
+
             {/* Calculations */}
-            <div className="space-y-2 text-xs text-gray-600 pt-2 border-t border-gray-100">
+            <div className="space-y-2 text-xs text-gray-600 pt-3 border-t border-gray-100">
               <div className="flex justify-between">
                 <span>المجموع الفرعي:</span>
                 <span className="font-bold text-gray-900">{formatCurrencyEGP(subtotal)}</span>
               </div>
               {discount > 0 && (
-                <div className="flex justify-between text-green-600 font-bold">
+                <div className="flex justify-between text-emerald-600 font-bold bg-emerald-50/60 p-2 rounded-lg border border-emerald-100">
                   <span>الخصم ({appliedCoupon?.code}):</span>
-                  <span>- {formatCurrencyEGP(discount)}</span>
+                  <span className="font-mono">- {formatCurrencyEGP(discount)}</span>
                 </div>
               )}
               <div className="flex justify-between">
-                <span>مصاريف الشحن:</span>
+                <span>مصاريف الشحن والتوصيل:</span>
                 <span className="font-bold text-gray-900">
-                  {shippingFee === 0 ? <span className="text-green-600">شحن مجاني</span> : formatCurrencyEGP(shippingFee)}
+                  {shippingFee === 0 ? <span className="text-emerald-600 font-black">شحن مجاني</span> : formatCurrencyEGP(shippingFee)}
                 </span>
               </div>
             </div>
 
             <div className="pt-4 border-t border-gray-100 flex items-baseline justify-between">
               <span className="text-sm font-black text-gray-900">الإجمالي المستحق:</span>
-              <span className="text-xl font-black text-mall-900">
+              <span className="text-xl font-black text-[#04383f]">
                 {formatCurrencyEGP(total)}
               </span>
             </div>
 
-            <button
+            <TextureButton
               type="submit"
+              variant="primary"
+              size="lg"
               disabled={isSubmitting}
-              className="w-full py-4 bg-gold-500 hover:bg-gold-600 text-mall-950 font-black text-sm rounded-xl flex items-center justify-center gap-2 shadow-md transition-all hover:scale-101 disabled:opacity-50"
+              className="w-full py-4 font-black text-sm gap-2 shadow-lg cursor-pointer"
             >
               {isSubmitting ? (
                 <span>جاري تسجيل وتأكيد الطلب...</span>
               ) : (
                 <>
                   <span>تأكيد وتسجيل الطلب الآن</span>
-                  <ArrowLeft className="w-4 h-4" />
+                  <ArrowLeft className="w-4 h-4 rtl:rotate-0 ltr:rotate-180" />
                 </>
               )}
-            </button>
+            </TextureButton>
 
             <div className="flex items-center gap-2 text-[11px] text-gray-400 justify-center">
               <ShieldCheck className="w-4 h-4 text-green-600" />

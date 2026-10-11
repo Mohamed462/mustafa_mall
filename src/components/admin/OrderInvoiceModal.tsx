@@ -17,43 +17,38 @@ export const OrderInvoiceModal: React.FC<OrderInvoiceModalProps> = ({ order, onC
 
   const handlePrint = () => {
     const printableElement = document.getElementById('printable-receipt-sheet');
-    if (!printableElement) return;
-
-    // Remove any leftover print frames
-    const existingFrame = document.getElementById('al-mostafa-print-frame');
-    if (existingFrame) existingFrame.remove();
-
-    const iframe = document.createElement('iframe');
-    iframe.id = 'al-mostafa-print-frame';
-    iframe.style.position = 'fixed';
-    iframe.style.top = '-10000px';
-    iframe.style.left = '-10000px';
-    iframe.style.width = '800px';
-    iframe.style.height = '1000px';
-    iframe.style.border = '0';
-    iframe.style.opacity = '0';
-    iframe.style.pointerEvents = 'none';
-    document.body.appendChild(iframe);
-
-    const doc = iframe.contentWindow?.document;
-    if (!doc) {
+    if (!printableElement) {
       window.print();
       return;
     }
 
-    // Clone live styles
-    const styles = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
+    const printTitle = `فاتورة-مول-المصطفى-${order.order_number}`;
+    const pageStyles = Array.from(document.querySelectorAll('style, link[rel="stylesheet"]'))
       .map(el => el.outerHTML)
       .join('\n');
 
-    doc.open();
-    doc.write(`
+    // Strategy 1: Open isolated print window with custom toolbar
+    const printWindow = window.open('', '_blank', 'width=900,height=950,menubar=no,toolbar=no,location=no,status=no,resizable=yes,scrollbars=yes');
+
+    // Strategy 2: If popups are blocked by browser settings, fall back to native in-window print
+    if (!printWindow) {
+      window.print();
+      return;
+    }
+
+    const printDoc = printWindow.document;
+    printDoc.open();
+    printDoc.write(`
       <!DOCTYPE html>
       <html dir="rtl" lang="ar">
       <head>
         <meta charset="utf-8" />
-        <title>فاتورة - ${order.order_number}</title>
-        ${styles}
+        <meta name="viewport" content="width=device-width, initial-scale=1" />
+        <title>${printTitle}</title>
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+        <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+        <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+        ${pageStyles}
         <style>
           @page {
             size: ${receiptMode === 'thermal' ? '80mm auto' : 'A4 portrait'};
@@ -67,43 +62,135 @@ export const OrderInvoiceModal: React.FC<OrderInvoiceModalProps> = ({ order, onC
           body {
             margin: 0;
             padding: 0;
-            background: #ffffff !important;
-            color: #000000 !important;
+            background: #f8fafc;
+            color: #0f172a;
             font-family: 'Cairo', system-ui, -apple-system, sans-serif;
             direction: rtl;
             text-align: right;
           }
-          .isolated-print-wrapper {
-            width: ${receiptMode === 'thermal' ? '76mm' : '100%'} !important;
-            max-width: ${receiptMode === 'thermal' ? '76mm' : '100%'} !important;
-            margin: 0 auto !important;
-            padding: 0 !important;
-            background: #ffffff !important;
+          .no-print-toolbar {
+            position: sticky;
+            top: 0;
+            z-index: 9999;
+            background: #042d32;
+            color: #ffffff;
+            padding: 12px 24px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            box-shadow: 0 4px 14px rgba(0,0,0,0.25);
+            border-bottom: 2px solid #08606B;
+            font-family: 'Cairo', sans-serif;
+          }
+          .no-print-toolbar h2 {
+            margin: 0;
+            font-size: 14px;
+            font-weight: 800;
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            color: #00D2D3;
+          }
+          .toolbar-actions {
+            display: flex;
+            align-items: center;
+            gap: 12px;
+          }
+          .btn-print {
+            background: #08606B;
+            color: white;
+            border: 1px solid #00D2D3;
+            padding: 8px 20px;
+            border-radius: 10px;
+            font-weight: 800;
+            font-size: 13px;
+            cursor: pointer;
+            box-shadow: 0 2px 8px rgba(8,96,107,0.3);
+            transition: all 0.2s;
+            display: flex;
+            align-items: center;
+            gap: 6px;
+          }
+          .btn-print:hover {
+            background: #0b7c8a;
+            transform: translateY(-1px);
+          }
+          .btn-close {
+            background: rgba(255,255,255,0.12);
+            color: #e2e8f0;
+            border: 1px solid rgba(255,255,255,0.2);
+            padding: 8px 16px;
+            border-radius: 10px;
+            font-size: 13px;
+            cursor: pointer;
+            transition: all 0.2s;
+          }
+          .btn-close:hover {
+            background: rgba(255,255,255,0.22);
+          }
+          .print-paper-container {
+            max-width: ${receiptMode === 'thermal' ? '80mm' : '210mm'};
+            margin: 28px auto;
+            background: #ffffff;
+            box-shadow: 0 10px 25px -5px rgba(0, 0, 0, 0.1), 0 8px 10px -6px rgba(0, 0, 0, 0.08);
+            border-radius: ${receiptMode === 'thermal' ? '6px' : '16px'};
+            padding: ${receiptMode === 'thermal' ? '6px' : '28px'};
+            overflow: hidden;
+            border: 1px solid #e2e8f0;
+          }
+          @media print {
+            body {
+              background: #ffffff !important;
+              padding: 0 !important;
+              margin: 0 !important;
+            }
+            .no-print-toolbar {
+              display: none !important;
+            }
+            .print-paper-container {
+              max-width: 100% !important;
+              width: 100% !important;
+              margin: 0 !important;
+              padding: 0 !important;
+              box-shadow: none !important;
+              border: none !important;
+              border-radius: 0 !important;
+            }
           }
         </style>
       </head>
       <body>
-        <div class="isolated-print-wrapper">
+        <div class="no-print-toolbar">
+          <h2>
+            <span>🖨️</span>
+            <span>معاينة الفاتورة جاهزة للطباعة — رقم الطلب ${order.order_number} (${receiptMode === 'thermal' ? 'إيصال حراري 80mm' : 'فاتورة A4'})</span>
+          </h2>
+          <div class="toolbar-actions">
+            <button class="btn-print" onclick="window.focus(); window.print();">
+              🖨️ اضغط للطباعة الآن (أو Ctrl + P)
+            </button>
+            <button class="btn-close" onclick="window.close();">
+              ✕ إغلاق المعاينة
+            </button>
+          </div>
+        </div>
+
+        <div class="print-paper-container">
           ${printableElement.innerHTML}
         </div>
+
+        <script>
+          window.addEventListener('load', function() {
+            setTimeout(function() {
+              window.focus();
+              window.print();
+            }, 350);
+          });
+        </script>
       </body>
       </html>
     `);
-    doc.close();
-
-    setTimeout(() => {
-      try {
-        iframe.contentWindow?.focus();
-        iframe.contentWindow?.print();
-      } catch (e) {
-        console.error('Iframe print error fallback', e);
-        window.print();
-      } finally {
-        setTimeout(() => {
-          iframe.remove();
-        }, 1500);
-      }
-    }, 300);
+    printDoc.close();
   };
 
   const handleDownloadHtml = () => {
@@ -197,9 +284,9 @@ export const OrderInvoiceModal: React.FC<OrderInvoiceModalProps> = ({ order, onC
         receiptMode === 'thermal' ? 'max-w-md' : 'max-w-3xl'
       }`}>
         {/* Top Control Bar (Hidden on Print) */}
-        <div className="bg-mall-950 p-4 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 print:hidden">
+        <div className="bg-[#042d32] p-4 text-white flex flex-col sm:flex-row sm:items-center justify-between gap-3 border-b border-[#08606B]/30 print:hidden">
           <div className="flex items-center gap-2">
-            <Printer className="w-5 h-5 text-gold-400" />
+            <Printer className="w-5 h-5 text-[#00D2D3]" />
             <span className="font-bold text-xs sm:text-sm">
               طباعة الفاتورة — طلب رقم {order.order_number}
             </span>
@@ -207,13 +294,13 @@ export const OrderInvoiceModal: React.FC<OrderInvoiceModalProps> = ({ order, onC
 
           <div className="flex items-center gap-2 flex-wrap">
             {/* Format Switcher */}
-            <div className="bg-mall-900 p-0.5 rounded-xl flex items-center border border-gray-700">
+            <div className="bg-[#032328] p-1 rounded-xl flex items-center border border-[#08606B]/40">
               <button
                 type="button"
                 onClick={() => setReceiptMode('thermal')}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
                   receiptMode === 'thermal'
-                    ? 'bg-gold-500 text-mall-950 shadow-xs'
+                    ? 'bg-[#08606B] text-white shadow-sm'
                     : 'text-gray-300 hover:text-white'
                 }`}
               >
@@ -223,9 +310,9 @@ export const OrderInvoiceModal: React.FC<OrderInvoiceModalProps> = ({ order, onC
               <button
                 type="button"
                 onClick={() => setReceiptMode('a4')}
-                className={`px-2.5 py-1 rounded-lg text-xs font-bold flex items-center gap-1 transition-all cursor-pointer ${
+                className={`px-3 py-1.5 rounded-lg text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer ${
                   receiptMode === 'a4'
-                    ? 'bg-gold-500 text-mall-950 shadow-xs'
+                    ? 'bg-[#08606B] text-white shadow-sm'
                     : 'text-gray-300 hover:text-white'
                 }`}
               >
@@ -237,18 +324,18 @@ export const OrderInvoiceModal: React.FC<OrderInvoiceModalProps> = ({ order, onC
             <button
               type="button"
               onClick={handlePrint}
-              className="px-3.5 py-1.5 bg-gold-500 hover:bg-gold-600 text-mall-950 rounded-xl font-black text-xs flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer"
+              className="px-4 py-2 bg-[#08606B] hover:bg-[#0b7c8a] text-white rounded-xl font-black text-xs flex items-center gap-1.5 shadow-md shadow-[#08606B]/25 border border-[#00D2D3]/40 transition-all cursor-pointer hover:scale-[1.02] active:scale-[0.98]"
             >
-              <Printer className="w-4 h-4" />
+              <Printer className="w-4 h-4 text-[#00D2D3]" />
               <span>طباعة فورية</span>
             </button>
             <button
               type="button"
               onClick={handleDownloadHtml}
-              className="px-3.5 py-1.5 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer border border-slate-700"
+              className="px-3.5 py-2 bg-slate-800 hover:bg-slate-700 text-slate-200 hover:text-white rounded-xl font-bold text-xs flex items-center gap-1.5 shadow-sm transition-colors cursor-pointer border border-slate-700"
               title="تحميل نسخة HTML كاملة ومستقلة"
             >
-              <Download className="w-4 h-4 text-gold-400" />
+              <Download className="w-4 h-4 text-[#00D2D3]" />
               <span>تحميل (HTML)</span>
             </button>
             <button
@@ -379,7 +466,7 @@ export const OrderInvoiceModal: React.FC<OrderInvoiceModalProps> = ({ order, onC
             /* ==================== OFFICIAL A4 INVOICE SHEET ==================== */
             <div className="p-8 sm:p-12 space-y-6 text-xs text-gray-800 print:p-6" id="printable-invoice">
               {/* Header */}
-              <div className="flex items-start justify-between border-b-2 border-mall-900 pb-6">
+              <div className="flex items-start justify-between border-b-2 border-[#08606B] pb-6">
                 <div className="flex items-center gap-4">
                   <img 
                     src="/brand-logo-transparent.webp" 
@@ -393,7 +480,7 @@ export const OrderInvoiceModal: React.FC<OrderInvoiceModalProps> = ({ order, onC
                     className="h-16 w-auto object-contain"
                   />
                   <div>
-                    <h1 className="text-xl font-black text-mall-950">مول المصطفى (Al Mostafa Mall)</h1>
+                    <h1 className="text-xl font-black text-[#04383f]">مول المصطفى (Al Mostafa Mall)</h1>
                     <p className="text-[11px] text-gray-600 font-bold">كل احتياجاتك تحت سقف واحد</p>
                     <p className="text-[10px] text-gray-500 mt-0.5">سجل تجاري: 458921 | بطاقة ضريبية: 923-441-802</p>
                     <p className="text-[10px] text-gray-500">
@@ -404,7 +491,7 @@ export const OrderInvoiceModal: React.FC<OrderInvoiceModalProps> = ({ order, onC
                 </div>
 
                 <div className="text-left space-y-1">
-                  <span className="inline-block px-3 py-1 bg-mall-900 text-white rounded-lg font-black text-xs">
+                  <span className="inline-block px-3 py-1 bg-[#08606B] text-white rounded-lg font-black text-xs">
                     فاتورة مبيعات معتمدة
                   </span>
                   <p className="font-mono font-bold text-sm text-gray-900 block mt-1">{order.order_number}</p>
@@ -437,7 +524,7 @@ export const OrderInvoiceModal: React.FC<OrderInvoiceModalProps> = ({ order, onC
               {/* Items Table */}
               <div className="border border-gray-200 rounded-2xl overflow-hidden">
                 <table className="w-full text-right">
-                  <thead className="bg-mall-900 text-white font-bold text-[11px]">
+                  <thead className="bg-[#04383f] text-white font-bold text-[11px]">
                     <tr>
                       <th className="p-3">#</th>
                       <th className="p-3">بيان الصنف</th>
@@ -499,7 +586,7 @@ export const OrderInvoiceModal: React.FC<OrderInvoiceModalProps> = ({ order, onC
                     <span>رسوم الشحن والتوصيل:</span>
                     <span className="font-mono font-bold">{order.shipping_fee_egp === 0 ? 'مجاناً' : formatEGP(order.shipping_fee_egp)}</span>
                   </div>
-                  <div className="flex justify-between text-base font-black text-mall-900 border-t border-gray-200 pt-2">
+                  <div className="flex justify-between text-base font-black text-[#04383f] border-t border-gray-200 pt-2">
                     <span>الإجمالي النهائي المستحق:</span>
                     <span className="font-mono text-green-800">{formatEGP(order.total_egp)}</span>
                   </div>
@@ -514,8 +601,8 @@ export const OrderInvoiceModal: React.FC<OrderInvoiceModalProps> = ({ order, onC
                 </div>
 
                 <div className="text-center space-y-1">
-                  <div className="w-20 h-20 rounded-full border-2 border-dashed border-mall-900 text-mall-900 flex flex-col items-center justify-center p-1 mx-auto rotate-12 opacity-80">
-                    <ShieldCheck className="w-6 h-6 text-gold-600" />
+                  <div className="w-20 h-20 rounded-full border-2 border-dashed border-[#08606B] text-[#08606B] flex flex-col items-center justify-center p-1 mx-auto rotate-12 opacity-80">
+                    <ShieldCheck className="w-6 h-6 text-[#08606B]" />
                     <span className="text-[8px] font-black">مول المصطفى</span>
                     <span className="text-[7px]">معتمد رسمياً</span>
                   </div>

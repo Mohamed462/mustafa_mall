@@ -115,6 +115,19 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     setCouponDiscount(0);
   };
 
+  // Auto-recalculate coupon discount when subtotal changes
+  useEffect(() => {
+    if (appliedCoupon) {
+      const result = dbStore.validateCoupon(appliedCoupon.code, subtotal);
+      if (result.valid) {
+        setCouponDiscount(result.discount);
+      } else {
+        setAppliedCoupon(null);
+        setCouponDiscount(0);
+      }
+    }
+  }, [subtotal, appliedCoupon]);
+
   const total = Math.max(0, subtotal - couponDiscount + shippingFee);
 
   return (

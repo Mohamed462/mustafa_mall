@@ -101,6 +101,45 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
   }, [currentUser]);
 
+  // Active RBAC Liveness Verification:
+  // If an active session belongs to a staff member who gets deactivated or deleted,
+  // immediately revoke the session and force logout.
+  useEffect(() => {
+    const verifyStaffSessionLiveness = () => {
+      if (!currentUser) return;
+      if (currentUser.role === 'customer' || currentUser.id === DEFAULT_ADMIN.id) {
+        return;
+      }
+
+      const staffList = dbStore.getStaffMembers();
+      const currentStaff = staffList.find(s => s.id === currentUser.id);
+
+      if (!currentStaff || !currentStaff.isActive) {
+        console.warn('Session terminated: Staff account was deactivated or removed.', currentUser.id);
+        setCurrentUser(null);
+        try {
+          localStorage.removeItem(AUTH_STORAGE_KEY);
+        } catch {}
+        if (typeof window !== 'undefined') {
+          alert('تنبيه أمني: تم تعطيل أو حذف هذا الحساب من قبل الإدارة. تم إنهاء الجلسة فوراً ومنع الوصول.');
+        }
+      }
+    };
+
+    verifyStaffSessionLiveness();
+
+    const handleStaffUpdate = () => verifyStaffSessionLiveness();
+    window.addEventListener('al_mostafa_staff_updated', handleStaffUpdate);
+    window.addEventListener('al_mostafa_db_updated', handleStaffUpdate);
+    window.addEventListener('storage', handleStaffUpdate);
+
+    return () => {
+      window.removeEventListener('al_mostafa_staff_updated', handleStaffUpdate);
+      window.removeEventListener('al_mostafa_db_updated', handleStaffUpdate);
+      window.removeEventListener('storage', handleStaffUpdate);
+    };
+  }, [currentUser]);
+
   const openAuthModal = (initialTab: 'login' | 'register' = 'login') => {
     setAuthModalTab(initialTab);
     setIsAuthModalOpen(true);
@@ -134,23 +173,29 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
     // 2. Check Staff Accounts in dbStore
     const staffMembers = dbStore.getStaffMembers();
-    const staffFound = staffMembers.find(s => 
-      s.isActive &&
+    const staffMatch = staffMembers.find(s => 
       (s.email.toLowerCase() === cleanInput || s.phone.trim() === cleanInput) &&
       (s.password === password)
     );
 
-    if (staffFound) {
+    if (staffMatch) {
+      if (!staffMatch.isActive) {
+        return { 
+          success: false, 
+          error: 'تم تعطيل هذا الحساب من قبل الإدارة. يرجى التواصل مع المدير العام لتفعيل الحساب.' 
+        };
+      }
+
       const staffProfile: UserProfile = {
-        id: staffFound.id,
-        name: staffFound.name,
-        email: staffFound.email,
-        phone: staffFound.phone,
-        role: staffFound.role,
-        permissions: staffFound.permissions,
+        id: staffMatch.id,
+        name: staffMatch.name,
+        email: staffMatch.email,
+        phone: staffMatch.phone,
+        role: staffMatch.role,
+        permissions: staffMatch.permissions,
         addresses: DEFAULT_ADDRESSES,
         provider: 'email',
-        created_at: staffFound.created_at || new Date().toISOString()
+        created_at: staffMatch.created_at || new Date().toISOString()
       };
       setCurrentUser(staffProfile);
       closeAuthModal();

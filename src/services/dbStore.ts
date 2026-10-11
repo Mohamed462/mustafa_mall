@@ -606,6 +606,14 @@ export const dbStore = {
       ]
     };
 
+    // Increment coupon usage count if used
+    if (orderData.coupon_code) {
+      const usedCoupon = state.coupons.find(c => c.code.toUpperCase() === orderData.coupon_code?.toUpperCase());
+      if (usedCoupon) {
+        usedCoupon.times_used = (usedCoupon.times_used || 0) + 1;
+      }
+    }
+
     state.orders.unshift(newOrder);
     saveState(state);
     dbStore.logAudit('create', 'orders', orderId, `إنشاء طلب جديد رقم ${orderNumber}`);
@@ -942,15 +950,32 @@ export const dbStore = {
     return false;
   },
   validateCoupon: (code: string, subtotal: number): { valid: boolean; coupon?: Coupon; discount: number; error?: string } => {
-    const coupon = state.coupons.find(c => c.code.toUpperCase() === code.trim().toUpperCase() && c.is_active);
+    const trimmedCode = code.trim().toUpperCase();
+    if (!trimmedCode) {
+      return { valid: false, discount: 0, error: 'يرجى إدخال كود الخصم أولاً' };
+    }
+    const coupon = state.coupons.find(c => c.code.toUpperCase() === trimmedCode);
     if (!coupon) {
-      return { valid: false, discount: 0, error: 'كوبون الخصم غير صحيح أو منتهي الصلاحية' };
+      return { valid: false, discount: 0, error: 'كود الخصم غير موجود، يرجى التأكد من كتابة الرمز بشكل صحيح' };
+    }
+    if (!coupon.is_active) {
+      return { valid: false, discount: 0, error: 'عفواً، تم إيقاف تفعيل هذا الكوبون من قبل الإدارة' };
+    }
+    const now = new Date();
+    if (coupon.starts_at && new Date(coupon.starts_at) > now) {
+      return { valid: false, discount: 0, error: 'عفواً، لم يبدأ موعد سريان هذا الكوبون بعد' };
+    }
+    if (coupon.expires_at && new Date(coupon.expires_at) < now) {
+      return { valid: false, discount: 0, error: 'عفواً، انتهت صلاحية هذا الكوبون ولم يعد متاحاً' };
+    }
+    if (coupon.usage_limit && coupon.times_used >= coupon.usage_limit) {
+      return { valid: false, discount: 0, error: 'عفواً، تم استنفاد الحد الأقصى لمرات استخدام هذا الكوبون' };
     }
     if (subtotal < coupon.min_order_value_egp) {
       return { 
         valid: false, 
         discount: 0, 
-        error: `الحد الأدنى للطلب لتفعيل هذا الكوبون هو ${coupon.min_order_value_egp} ج.م` 
+        error: `الحد الأدنى لقيمة المشتريات لتفعيل هذا الكوبون هو ${coupon.min_order_value_egp} ج.م (المجموع الحالي: ${subtotal} ج.م)` 
       };
     }
     let discount = 0;
@@ -962,7 +987,8 @@ export const dbStore = {
     } else {
       discount = coupon.discount_value;
     }
-    return { valid: true, coupon, discount: Math.min(discount, subtotal) };
+    discount = Math.round(Math.min(discount, subtotal) * 100) / 100;
+    return { valid: true, coupon, discount };
   },
 
   // AUDIT LOGS
