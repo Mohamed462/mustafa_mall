@@ -74,6 +74,8 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ banners }) => {
           src={current.image_mobile_url || current.image_desktop_url}
           alt={current.title_ar || 'بانر مول المصطفى'}
           onError={(e) => handleImageError(e, BANNER_FALLBACK_IMAGE)}
+          fetchPriority="high"
+          decoding="async"
           className="w-full h-full object-cover transition-all duration-700 transform group-hover:scale-[1.01]"
         />
       </picture>
