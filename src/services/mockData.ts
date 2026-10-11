@@ -1150,3 +1150,84 @@ export const INITIAL_STAFF: StaffMember[] = [
     lastLogin: 'قبل 3 أيام'
   }
 ];
+
+export const INITIAL_ORDERS: import('../types').Order[] = [
+  {
+    id: 'ord-sample-1',
+    order_number: 'MSM-849201',
+    customer_id: 'usr-cust-1',
+    customer_name: 'محمود عبد الرحمن',
+    customer_phone: '01012345678',
+    customer_email: 'mahmoud.abdelrahman@gmail.com',
+    governorate: 'القاهرة',
+    city: 'مدينة نصر',
+    shipping_address: 'شارع عباس العقاد، عمارة 14، الدور الرابع، شقة 8',
+    delivery_notes: 'يرجى الاتصال قبل الوصول بنصف ساعة',
+    payment_method: 'cash_on_delivery',
+    payment_status: 'pending',
+    order_status: 'pending_confirmation',
+    subtotal_egp: 885.0,
+    discount_egp: 88.5,
+    coupon_code: 'MOSTAFA10',
+    shipping_fee_egp: 45.0,
+    total_egp: 841.5,
+    internal_notes: 'طلب جديد تم تأكيده هاتفياً',
+    items: [
+      {
+        id: 'item-1',
+        order_id: 'ord-sample-1',
+        product_id: 'p-home-1',
+        product_name_ar: 'مسحوق غسيل أوتوماتيك أريال لافندر مركز - 4 كجم',
+        product_sku: 'HOM-ARI-001',
+        unit_price_egp: 295.0,
+        quantity: 2,
+        total_price_egp: 590.0,
+      },
+      {
+        id: 'item-2',
+        order_id: 'ord-sample-1',
+        product_id: 'p-home-2',
+        product_name_ar: 'ممسحة أرضيات دوارة ذكية مع جردل تجفيف ستانلس ستيل',
+        product_sku: 'HOM-MOP-002',
+        unit_price_egp: 295.0,
+        quantity: 1,
+        total_price_egp: 295.0,
+      }
+    ],
+    created_at: new Date(Date.now() - 3600000 * 4).toISOString(),
+    updated_at: new Date(Date.now() - 3600000 * 4).toISOString(),
+  },
+  {
+    id: 'ord-sample-2',
+    order_number: 'MSM-723145',
+    customer_id: 'usr-cust-2',
+    customer_name: 'سارة إبراهيم الشناوي',
+    customer_phone: '01123456789',
+    customer_email: 'sara.shennawy@outlook.com',
+    governorate: 'الجيزة',
+    city: 'الدقي',
+    shipping_address: 'ميدان المساحة، شارع إيران، برج الأطباء، الدور السادس',
+    delivery_notes: 'الدفع نقداً عند الاستلام',
+    payment_method: 'cash_on_delivery',
+    payment_status: 'pending',
+    order_status: 'preparing',
+    subtotal_egp: 420.0,
+    discount_egp: 0,
+    shipping_fee_egp: 40.0,
+    total_egp: 460.0,
+    items: [
+      {
+        id: 'item-3',
+        order_id: 'ord-sample-2',
+        product_id: 'p-stat-1',
+        product_name_ar: 'طقم أقلام حبر جاف فاخرة يوني بول - 12 قلم',
+        product_sku: 'STA-UNI-001',
+        unit_price_egp: 210.0,
+        quantity: 2,
+        total_price_egp: 420.0,
+      }
+    ],
+    created_at: new Date(Date.now() - 3600000 * 24).toISOString(),
+    updated_at: new Date(Date.now() - 3600000 * 12).toISOString(),
+  }
+];

@@ -30,7 +30,8 @@ import {
   INITIAL_CMS_PAGES, 
   INITIAL_COUPONS,
   INITIAL_NAV_ITEMS,
-  INITIAL_STAFF
+  INITIAL_STAFF,
+  INITIAL_ORDERS
 } from './mockData';
 
 const STORAGE_KEY = 'al_mostafa_store_v1';
@@ -159,7 +160,7 @@ function loadState(): StoreState {
         cmsPages: Array.isArray(parsed.cmsPages) && parsed.cmsPages.length >= INITIAL_CMS_PAGES.length
           ? parsed.cmsPages
           : clone(INITIAL_CMS_PAGES),
-        orders: parsed.orders || [],
+        orders: (Array.isArray(parsed.orders) && parsed.orders.length > 0) ? parsed.orders : clone(INITIAL_ORDERS),
         printRequests: parsed.printRequests || [],
         coupons: parsed.coupons || clone(INITIAL_COUPONS),
         discountCampaigns: parsed.discountCampaigns || [],
@@ -227,7 +228,7 @@ function loadState(): StoreState {
     banners: clone(INITIAL_BANNERS),
     homepageSections: clone(INITIAL_HOMEPAGE_SECTIONS),
     cmsPages: clone(INITIAL_CMS_PAGES),
-    orders: [],
+    orders: clone(INITIAL_ORDERS),
     printRequests: [],
     coupons: clone(INITIAL_COUPONS),
     discountCampaigns: [],
