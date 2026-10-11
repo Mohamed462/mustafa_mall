@@ -139,7 +139,7 @@ export const AdminLayout: React.FC = () => {
         {/* Brand Header */}
         <div className="p-4 border-b border-white/10 flex items-center justify-between">
           <Link to="/" className="flex items-center gap-2.5 group">
-            <img src="/brand-logo-transparent.webp" alt="مول المصطفى" className="h-9 w-9 object-contain drop-shadow transition-transform group-hover:scale-105" />
+            <img src="/brand-logo-transparent.webp" alt="مول المصطفى" className="h-9 w-auto object-contain drop-shadow transition-transform group-hover:scale-105" />
             <div>
               <span className="font-bold text-sm text-white block leading-tight">مول المصطفى</span>
               <span className="text-[9px] text-[#00D2D3] font-mono font-semibold tracking-wider">لوحة الإدارة والتحكم</span>
@@ -258,7 +258,7 @@ export const AdminLayout: React.FC = () => {
           <div className="fixed inset-y-0 start-0 max-w-xs w-full bg-[#032328] text-white shadow-2xl flex flex-col z-50">
             <div className="p-4 border-b border-white/10 flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <img src="/brand-logo-transparent.webp" alt="مول المصطفى" className="h-8 w-8 object-contain" />
+                <img src="/brand-logo-transparent.webp" alt="مول المصطفى" className="h-8 w-auto object-contain" />
                 <span className="font-bold text-sm text-white">مول المصطفى - الإدارة</span>
               </div>
               <button 

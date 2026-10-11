@@ -46,6 +46,7 @@ export const PrintServiceDetailPage: React.FC = () => {
   // Submission State
   const [errorMsg, setErrorMsg] = useState('');
   const [submittedRequestNumber, setSubmittedRequestNumber] = useState<string | null>(null);
+  const [submittedWhatsAppUrl, setSubmittedWhatsAppUrl] = useState<string>('');
 
   // Initialize default options
   React.useEffect(() => {
@@ -193,10 +194,9 @@ export const PrintServiceDetailPage: React.FC = () => {
       setErrorMsg('يرجى إدخال رقم هاتف محمول مصري صحيح مكون من 11 رقماً.');
       return;
     }
-    if (service.requires_file_upload && uploadedFiles.length === 0) {
-      setErrorMsg('يرجى إرفاق ملف الطباعة المطلوب للمتابعة.');
-      return;
-    }
+    const filesToSubmit = uploadedFiles.length > 0 
+      ? uploadedFiles 
+      : [{ name: 'سيتم إرسال الملف مباشرة عبر واتساب 📎', size: 0 }];
 
     const specifications: Record<string, any> = {
       ...selectedOptions,
@@ -223,7 +223,7 @@ export const PrintServiceDetailPage: React.FC = () => {
       notes: notes.trim() || undefined,
       calculated_price_egp: service.pricing_model === 'quote_only' ? undefined : calculatedPrice,
       status: 'new',
-      files: uploadedFiles.map(f => ({
+      files: filesToSubmit.map(f => ({
         id: `f-${Date.now()}-${Math.random().toString(36).substring(2, 6)}`,
         file_name: f.name,
         file_path: `/private-uploads/${f.name}`,
@@ -232,7 +232,45 @@ export const PrintServiceDetailPage: React.FC = () => {
       }))
     });
 
+    const specEntries = Object.entries(selectedOptions)
+      .map(([k, v]) => {
+        const opt = service.options?.find(o => o.option_key === k);
+        const val = opt?.values.find(val => val.value_key === v);
+        return opt && val ? `• ${opt.label_ar}: ${val.label_ar}` : null;
+      })
+      .filter(Boolean)
+      .join('\n');
+
+    const filesStr = uploadedFiles.length > 0 
+      ? `📄 أسماء الملفات المحددة للطباعة:\n${uploadedFiles.map((f, i) => `  ${i + 1}. ${f.name} (${f.size} KB)`).join('\n')}`
+      : '📄 سيتم إرفاق الملف في هذه المحادثة مباشرة';
+
+    const waMsg = `*طلب خدمة طباعة جديد — مول المصطفى* 🖨️
+*كود الطلب المرجعي:* ${newReq.request_number}
+*اسم الخدمة:* ${service.name_ar}
+*اسم العميل:* ${customerName.trim()}
+*رقم الهاتف:* ${cleanPhone}
+${customerEmail.trim() ? `*البريد:* ${customerEmail.trim()}\n` : ''}
+*المواصفات المختارة:*
+${specEntries || '• المواصفات القياسية'}
+${service.pricing_model === 'per_page' ? `• عدد الصفحات: ${pagesCount} صفحة\n• عدد النسخ: ${copiesCount} نسخ` : ''}
+${service.pricing_model === 'per_sqm' ? `• المقاس: ${bannerWidth} × ${bannerHeight} م\n• الكمية: ${quantity}` : ''}
+${service.pricing_model === 'per_unit' ? `• الكمية: ${quantity} قطعة` : ''}
+${calculatedPrice ? `*السعر التقديري:* ${formatCurrencyEGP(calculatedPrice)}` : '*نوع التسعير:* مقايسة فنية مخصصة'}
+${notes.trim() ? `\n*ملاحظات إضافية:* ${notes.trim()}\n` : ''}
+${filesStr}
+
+📎 *مرفق مع هذه الرسالة ملف الطباعة المطلوب* (أو يرجى إرسال الملف الآن في هذه المحادثة لبدء التجهيز والطباعة).`;
+
+    const waUrl = getWhatsAppUrl(settings.whatsapp_number, waMsg);
+    setSubmittedWhatsAppUrl(waUrl);
     setSubmittedRequestNumber(newReq.request_number);
+
+    try {
+      window.open(waUrl, '_blank');
+    } catch (e) {
+      // Ignored if browser popups blocked
+    }
   };
 
   return (
@@ -246,35 +284,51 @@ export const PrintServiceDetailPage: React.FC = () => {
       {submittedRequestNumber && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60" />
-          <div className="relative bg-white rounded-3xl max-w-lg w-full p-8 shadow-2xl z-10 text-center space-y-4 animate-scale-up">
-            <div className="w-16 h-16 bg-cyan-100 text-cyan-700 rounded-full flex items-center justify-center mx-auto">
+          <div className="relative bg-white rounded-3xl max-w-lg w-full p-8 shadow-2xl z-10 text-center space-y-5 animate-scale-up">
+            <div className="w-16 h-16 bg-cyan-100 text-cyan-700 rounded-full flex items-center justify-center mx-auto shadow-sm">
               <CheckCircle2 className="w-10 h-10" />
             </div>
-            <h2 className="text-2xl font-black text-mall-900">
-              تم استلام طلب الطباعة بنجاح!
-            </h2>
-            <p className="text-xs text-gray-600">
-              رقم الطلب المرجعي الخاص بك هو:
-            </p>
-            <div className="font-mono text-xl font-black text-cyan-800 bg-cyan-50 p-3 rounded-2xl border border-cyan-200">
-              {submittedRequestNumber}
+            <div className="space-y-1">
+              <h2 className="text-2xl font-black text-mall-900">
+                تم تسجيل طلب الطباعة بنجاح!
+              </h2>
+              <p className="text-xs text-gray-500">
+                رقم الطلب المرجعي الخاص بك:
+              </p>
+              <div className="font-mono text-xl font-black text-cyan-800 bg-cyan-50 p-2.5 rounded-2xl border border-cyan-200 inline-block px-6 mt-1">
+                {submittedRequestNumber}
+              </div>
             </div>
-            <p className="text-xs text-gray-500">
-              سيقوم فريق مركز الطباعة بمراجعة الملفات وتأكيد المواصفات والتجهيز فوراً.
-            </p>
-            <div className="pt-2 flex flex-col gap-2">
+
+            {/* Clear Action Instruction Box */}
+            <div className="bg-emerald-50 border border-emerald-200/80 rounded-2xl p-4 text-emerald-950 text-xs text-right space-y-2">
+              <div className="font-bold flex items-center gap-2 text-emerald-800 text-sm">
+                <MessageCircle className="w-5 h-5 text-emerald-600 shrink-0" />
+                <span>الخطوة التالية لتنفيذ طلبك:</span>
+              </div>
+              <p className="text-xs leading-relaxed text-emerald-800">
+                تم تجهيز نص الرسالة بكافة المواصفات المختارة. اضغط على الزر الأخضر بالأسفل لفتح محادثة الواتساب، <strong>وأرفق ملفك المطلوب طباعته (PDF / صور / Word) في نفس المحادثة</strong> للبدء الفوري.
+              </p>
+              {uploadedFiles.length > 0 && (
+                <div className="text-[11px] text-emerald-700 font-mono pt-1 border-t border-emerald-200/60">
+                  الملفات الموثقة: {uploadedFiles.map(f => f.name).join(' ، ')}
+                </div>
+              )}
+            </div>
+
+            <div className="pt-2 flex flex-col gap-2.5">
               <a
-                href={getWhatsAppUrl(settings.whatsapp_number, `مرحباً مول المصطفى، أود متابعة طلب الطباعة رقم: ${submittedRequestNumber}`)}
+                href={submittedWhatsAppUrl || getWhatsAppUrl(settings.whatsapp_number, `مرحباً مول المصطفى، أود متابعة طلب الطباعة رقم: ${submittedRequestNumber}`)}
                 target="_blank"
                 rel="noopener noreferrer"
-                className="w-full py-3 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-bold flex items-center justify-center gap-2"
+                className="w-full py-4 bg-emerald-600 hover:bg-emerald-700 text-white rounded-2xl text-xs font-black flex items-center justify-center gap-2 shadow-lg shadow-emerald-600/20 hover:shadow-xl transition-all"
               >
-                <MessageCircle className="w-4 h-4" />
-                <span>متابعة الطلب عبر واتساب</span>
+                <MessageCircle className="w-5 h-5" />
+                <span>إرسال الطلب وإرفاق الملف عبر واتساب 📲</span>
               </a>
               <Link
                 to="/print-center"
-                className="w-full py-3 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold"
+                className="w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition-colors"
               >
                 العودة لمركز الطباعة
               </Link>

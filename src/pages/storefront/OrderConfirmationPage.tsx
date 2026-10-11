@@ -29,6 +29,8 @@ export const OrderConfirmationPage: React.FC = () => {
 
   const [lookupInput, setLookupInput] = useState(orderNumber);
   const [showInvoiceModal, setShowInvoiceModal] = useState(false);
+  const [copiedPhone, setCopiedPhone] = useState(false);
+  const [copiedAmount, setCopiedAmount] = useState(false);
 
   // Sync lookup input when orderNumber param changes via navigation
   React.useEffect(() => {
@@ -114,7 +116,29 @@ export const OrderConfirmationPage: React.FC = () => {
     );
   }
 
-  const whatsappText = `مرحباً مول المصطفى، أود متابعة طلبي رقم: ${order.order_number}`;
+  const whatsappText = order.payment_method === 'instapay'
+    ? `*تأكيد تحويل إنستاباي — مول المصطفى* 📲
+*كود الطلب:* ${order.order_number}
+*اسم العميل:* ${order.customer_name}
+*رقم الهاتف:* ${order.customer_phone}
+*المبلغ المطلوب تحويله:* ${formatCurrencyEGP(order.total_egp)}
+*عنوان التوصيل:* ${order.governorate} — ${order.city} — ${order.shipping_address}
+*الأصناف:*
+${order.items.map((it, idx) => `• ${it.product_name_ar} (الكمية: ${it.quantity})`).join('\n')}
+
+📸 *مرفق مع هذه الرسالة صورة إشعار تحويل إنستاباي لتأكيد شحن الطلب فوراً.*`
+    : `*تأكيد ومتابعة طلب جديد — مول المصطفى* 📦
+*كود الطلب:* ${order.order_number}
+*اسم العميل:* ${order.customer_name}
+*رقم الهاتف:* ${order.customer_phone}
+*المبلغ الإجمالي:* ${formatCurrencyEGP(order.total_egp)}
+*طريقة الدفع:* ${order.payment_method === 'cash_on_delivery' ? 'الدفع نقداً عند الاستلام' : 'محافظ إلكترونية'}
+*عنوان التوصيل:* ${order.governorate} — ${order.city} — ${order.shipping_address}
+*الأصناف:*
+${order.items.map((it, idx) => `• ${it.product_name_ar} (الكمية: ${it.quantity})`).join('\n')}
+
+أرجو تأكيد تجهيز الشحنة وميعاد التوصيل. شكراً لك!`;
+
   const statusInfo = getStatusInfo(order.order_status);
   const StatusIcon = statusInfo.icon;
 
@@ -152,28 +176,85 @@ export const OrderConfirmationPage: React.FC = () => {
             href={getWhatsAppUrl(settings.whatsapp_number, whatsappText)}
             target="_blank"
             rel="noopener noreferrer"
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-green-600 hover:bg-green-700 text-white rounded-xl text-xs font-bold shadow-sm transition-colors"
+            className="inline-flex items-center gap-2 px-5 py-3 bg-emerald-600 hover:bg-emerald-700 text-white rounded-xl text-xs font-black shadow-md shadow-emerald-600/20 hover:shadow-lg transition-all"
           >
             <MessageCircle className="w-4 h-4" />
-            <span>متابعة الطلب فوراً عبر واتساب</span>
+            <span>{order.payment_method === 'instapay' ? 'تأكيد التحويل وإرسال الإشعار عبر واتساب 📲' : 'متابعة الطلب فوراً عبر واتساب'}</span>
           </a>
           <button
             type="button"
             onClick={() => setShowInvoiceModal(true)}
-            className="inline-flex items-center gap-2 px-5 py-2.5 bg-gold-500 hover:bg-gold-600 text-mall-950 rounded-xl text-xs font-black transition-colors cursor-pointer shadow-sm"
+            className="inline-flex items-center gap-2 px-5 py-3 bg-gold-500 hover:bg-gold-600 text-mall-950 rounded-xl text-xs font-black transition-colors cursor-pointer shadow-sm"
           >
             <Printer className="w-4 h-4" />
             <span>طباعة فاتورة الطلب (A4 / حراري)</span>
           </button>
           <Link
             to="/order-confirmation"
-            className="inline-flex items-center gap-2 px-4 py-2.5 text-gray-500 hover:text-gray-800 text-xs font-bold"
+            className="inline-flex items-center gap-2 px-4 py-3 text-gray-500 hover:text-gray-800 text-xs font-bold"
           >
             <Search className="w-3.5 h-3.5" />
             <span>تتبع شحنة أخرى</span>
           </Link>
         </div>
       </div>
+
+      {/* Dedicated InstaPay Payment Action Card */}
+      {order.payment_method === 'instapay' && (
+        <div className="bg-gradient-to-br from-purple-50 via-purple-50/60 to-white border-2 border-purple-200/80 rounded-3xl p-6 sm:p-7 text-right space-y-4 shadow-sm">
+          <div className="flex items-center justify-between pb-3 border-b border-purple-200/60">
+            <div className="flex items-center gap-2 text-purple-950 font-black text-base">
+              <span className="w-3 h-3 rounded-full bg-purple-600 animate-pulse"></span>
+              <span>بيانات تحويل إنستاباي المعتمدة (InstaPay)</span>
+            </div>
+            <span className="text-xs font-mono font-black bg-purple-200 text-purple-900 px-3 py-1 rounded-full">
+              المطلوب: {formatCurrencyEGP(order.total_egp)}
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-3.5 text-xs">
+            <div className="bg-white p-4 rounded-2xl border border-purple-100 flex items-center justify-between shadow-xs">
+              <div>
+                <span className="text-gray-400 block text-[11px] font-medium">رقم الهاتف / حساب إنستاباي المول:</span>
+                <span className="font-mono font-black text-base text-purple-950">{settings.phone}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(settings.phone);
+                  setCopiedPhone(true);
+                  setTimeout(() => setCopiedPhone(false), 2000);
+                }}
+                className="px-3.5 py-1.5 bg-purple-100 hover:bg-purple-200 text-purple-900 rounded-xl text-xs font-black transition-colors cursor-pointer"
+              >
+                {copiedPhone ? 'تم النسخ ✓' : 'نسخ الرقم'}
+              </button>
+            </div>
+
+            <div className="bg-white p-4 rounded-2xl border border-purple-100 flex items-center justify-between shadow-xs">
+              <div>
+                <span className="text-gray-400 block text-[11px] font-medium">المبلغ المطلوب تحويله:</span>
+                <span className="font-mono font-black text-base text-emerald-700">{formatCurrencyEGP(order.total_egp)}</span>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  navigator.clipboard.writeText(String(order.total_egp));
+                  setCopiedAmount(true);
+                  setTimeout(() => setCopiedAmount(false), 2000);
+                }}
+                className="px-3.5 py-1.5 bg-emerald-50 hover:bg-emerald-100 text-emerald-800 rounded-xl text-xs font-black transition-colors cursor-pointer"
+              >
+                {copiedAmount ? 'تم النسخ ✓' : 'نسخ المبلغ'}
+              </button>
+            </div>
+          </div>
+
+          <div className="bg-purple-100/70 text-purple-950 rounded-2xl p-3.5 text-xs font-semibold leading-relaxed">
+            💡 <strong>تعليمات إنهاء الدفع:</strong> افتح تطبيق InstaPay وقم بتحويل مبلغ <strong>{formatCurrencyEGP(order.total_egp)}</strong> إلى رقم <strong>{settings.phone}</strong>، ثم اضغط على زر <strong>"تأكيد التحويل وإرسال الإشعار عبر واتساب 📲"</strong> بالأعلى وأرفق لقطة الشاشة (سكرين شوت) لتأكيد وتجهيز شحنتك فوراً.
+          </div>
+        </div>
+      )}
 
       {/* Interactive Visual Shipment Timeline Stepper */}
       <div className="bg-white rounded-3xl border border-gray-100 shadow-card p-6 sm:p-8 space-y-5">

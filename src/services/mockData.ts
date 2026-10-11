@@ -28,7 +28,7 @@ export const INITIAL_SETTINGS: StoreSettings = {
   free_shipping_threshold_egp: 750.0,
   is_cod_enabled: true,
   announcement_text_ar: '🔥 عروض وتخفيضات مول المصطفى الكبرى — شحن مجاني للطلبات فوق 750 ج.م!',
-  is_announcement_enabled: true,
+  is_announcement_enabled: false,
 };
 
 export const INITIAL_BRANDS: Brand[] = [

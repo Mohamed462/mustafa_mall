@@ -10,10 +10,7 @@ import {
   MapPin, 
   MessageCircle, 
   Printer, 
-  ShieldCheck, 
-  Truck, 
-  RotateCcw, 
-  CreditCard 
+  ShieldCheck 
 } from 'lucide-react';
 
 export const Footer: React.FC = () => {
@@ -37,54 +34,9 @@ export const Footer: React.FC = () => {
   const footerNavLinks = navItems.filter(item => item.location === 'footer' && item.is_active);
 
   return (
-    <footer className="bg-[#04383f] text-slate-300 pt-14 pb-8 border-t border-[#002830] text-right font-sans">
-      {/* Top Value Propositions */}
-      <div className="max-w-7xl mx-auto px-4 pb-12 border-b border-white/10">
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-6">
-          <div className="flex items-center gap-3.5 p-4 rounded-2xl bg-[#03292e] border border-white/10 hover:border-[#00D2D3]/40 transition-colors">
-            <div className="p-3 rounded-xl bg-[#08606B] text-[#00D2D3] shrink-0">
-              <Truck className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="text-sm font-bold text-white">توصيل سريع وموثوق</h4>
-              <p className="text-xs text-slate-300/80 mt-0.5">شحن مجاني للطلبات فوق {settings.free_shipping_threshold_egp} ج.م</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3.5 p-4 rounded-2xl bg-[#03292e] border border-white/10 hover:border-[#00D2D3]/40 transition-colors">
-            <div className="p-3 rounded-xl bg-[#08606B] text-[#00D2D3] shrink-0">
-              <ShieldCheck className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="text-sm font-bold text-white">جودة أصلية 100%</h4>
-              <p className="text-xs text-slate-300/80 mt-0.5">منتجات معتمدة ومطابقة لأعلى المواصفات</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3.5 p-4 rounded-2xl bg-[#03292e] border border-white/10 hover:border-[#00D2D3]/40 transition-colors">
-            <div className="p-3 rounded-xl bg-[#08606B] text-[#00D2D3] shrink-0">
-              <RotateCcw className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="text-sm font-bold text-white">استبدال واسترجاع مرن</h4>
-              <p className="text-xs text-slate-300/80 mt-0.5">خلال 14 يوماً وفقاً لمعايير حماية المستهلك</p>
-            </div>
-          </div>
-
-          <div className="flex items-center gap-3.5 p-4 rounded-2xl bg-[#03292e] border border-white/10 hover:border-[#00D2D3]/40 transition-colors">
-            <div className="p-3 rounded-xl bg-[#08606B] text-[#00D2D3] shrink-0">
-              <CreditCard className="w-5 h-5" />
-            </div>
-            <div>
-              <h4 className="text-sm font-bold text-white">دفع آمن ومتعدد الطرق</h4>
-              <p className="text-xs text-slate-300/80 mt-0.5">كاش عند الاستلام، إنستاباي، وبطاقات الدفع</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
+    <footer className="bg-[#04383f] text-slate-300 pt-12 pb-8 border-t border-[#002830] text-right font-sans">
       {/* Main Footer Links */}
-      <div className="max-w-7xl mx-auto px-4 py-12">
+      <div className="max-w-7xl mx-auto px-4 py-8">
         <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-10">
           {/* Brand Info */}
           <div className="lg:col-span-2 space-y-4">
@@ -92,7 +44,7 @@ export const Footer: React.FC = () => {
               <img 
                 src="/brand-logo-transparent.webp" 
                 alt="مول المصطفى" 
-                className="h-12 w-12 object-contain transition-transform group-hover:scale-105" 
+                className="h-14 w-auto object-contain transition-transform group-hover:scale-105 drop-shadow-md" 
               />
               <div>
                 <span className="font-bold text-2xl text-white block leading-tight tracking-tight group-hover:text-[#00D2D3] transition-colors">
