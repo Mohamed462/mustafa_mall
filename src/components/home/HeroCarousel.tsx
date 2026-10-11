@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Banner } from '../../types';
-import { ChevronRight, ChevronLeft, Play, Pause } from 'lucide-react';
+import { ChevronRight, ChevronLeft } from 'lucide-react';
 import { handleImageError, BANNER_FALLBACK_IMAGE } from '../../utils/imageUtils';
 
 interface HeroCarouselProps {
@@ -54,10 +54,6 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ banners }) => {
     if (index === currentIndex) return;
     setCurrentIndex(index);
     setProgress(0);
-  };
-
-  const togglePlayPause = () => {
-    setIsPaused(prev => !prev);
   };
 
   const isExternalUrl = (url?: string) => {
@@ -149,101 +145,68 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ banners }) => {
         )}
       </div>
 
-      {/* Interactive Progress & Navigation Dock */}
+      {/* Interactive Progress Indicators */}
       {activeBanners.length > 1 && (
-        <div className="flex items-center justify-between gap-3 mt-3.5 px-2 max-w-2xl mx-auto select-none">
-          {/* Play/Pause Autoplay Toggle Button */}
-          <button
-            type="button"
-            onClick={togglePlayPause}
-            className={`w-8 h-8 rounded-xl border flex items-center justify-center transition-all cursor-pointer shrink-0 shadow-xs ${
-              isPaused 
-                ? 'bg-[#08606B] text-white border-[#08606B]' 
-                : 'bg-white hover:bg-gray-50 text-[#04383f] hover:text-[#08606B] border-gray-200/80'
-            }`}
-            title={isPaused ? "تشغيل التبديل التلقائي" : "إيقاف مؤقت للتبديل التلقائي"}
-            aria-label={isPaused ? "تشغيل التبديل التلقائي" : "إيقاف مؤقت للتبديل التلقائي"}
-          >
-            {isPaused ? (
-              <Play className="w-3.5 h-3.5 fill-current" />
-            ) : (
-              <Pause className="w-3.5 h-3.5" />
-            )}
-          </button>
+        <div className="flex items-center gap-2 mt-3.5 px-4 max-w-md mx-auto select-none">
+          {activeBanners.map((banner, idx) => {
+            const isActive = currentIndex === idx;
+            const isPast = idx < currentIndex;
 
-          {/* Segmented Story-Style Progress Bars */}
-          <div className="flex-1 flex items-center gap-2">
-            {activeBanners.map((banner, idx) => {
-              const isActive = currentIndex === idx;
-              const isPast = idx < currentIndex;
-
-              return (
-                <div
-                  key={banner.id || idx}
-                  className="relative flex-1 group/bar py-2 cursor-pointer"
-                  onClick={() => handleSelectSlide(idx)}
-                  role="button"
-                  tabIndex={0}
-                  onKeyDown={(e) => {
-                    if (e.key === 'Enter' || e.key === ' ') handleSelectSlide(idx);
-                  }}
-                  aria-label={`الانتقال إلى الشريحة ${idx + 1}: ${banner.title_ar || ''}`}
-                >
-                  {/* Floating Hover Tooltip with Banner Title & Thumbnail */}
-                  <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 opacity-0 group-hover/bar:opacity-100 transition-all duration-200 pointer-events-none z-30 flex flex-col items-center">
-                    <div className="bg-[#04383f] text-white text-[11px] font-bold px-3 py-1.5 rounded-xl shadow-lg border border-white/10 flex items-center gap-2 whitespace-nowrap">
-                      {banner.image_mobile_url || banner.image_desktop_url ? (
-                        <img 
-                          src={banner.image_mobile_url || banner.image_desktop_url} 
-                          alt="" 
-                          className="w-7 h-4 object-cover rounded-xs border border-white/20 shrink-0"
-                        />
-                      ) : null}
-                      <span>{banner.title_ar || `شريحة ${idx + 1}`}</span>
-                    </div>
-                    <div className="w-2 h-2 bg-[#04383f] rotate-45 -mt-1" />
+            return (
+              <div
+                key={banner.id || idx}
+                className="relative flex-1 group/bar py-2 cursor-pointer"
+                onClick={() => handleSelectSlide(idx)}
+                role="button"
+                tabIndex={0}
+                onKeyDown={(e) => {
+                  if (e.key === 'Enter' || e.key === ' ') handleSelectSlide(idx);
+                }}
+                aria-label={`الانتقال إلى الشريحة ${idx + 1}: ${banner.title_ar || ''}`}
+              >
+                {/* Floating Hover Tooltip with Banner Title & Thumbnail */}
+                <div className="absolute bottom-full mb-2 left-1/2 -translate-x-1/2 opacity-0 group-hover/bar:opacity-100 transition-all duration-200 pointer-events-none z-30 flex flex-col items-center">
+                  <div className="bg-[#04383f] text-white text-[11px] font-bold px-3 py-1.5 rounded-xl shadow-lg border border-white/10 flex items-center gap-2 whitespace-nowrap">
+                    {banner.image_mobile_url || banner.image_desktop_url ? (
+                      <img 
+                        src={banner.image_mobile_url || banner.image_desktop_url} 
+                        alt="" 
+                        className="w-7 h-4 object-cover rounded-xs border border-white/20 shrink-0"
+                      />
+                    ) : null}
+                    <span>{banner.title_ar || `شريحة ${idx + 1}`}</span>
                   </div>
+                  <div className="w-2 h-2 bg-[#04383f] rotate-45 -mt-1" />
+                </div>
 
-                  {/* Interactive Bar Track */}
-                  <div className={`h-1.5 sm:h-2 rounded-full overflow-hidden transition-all duration-300 relative ${
-                    isActive 
-                      ? 'bg-gray-200/90 group-hover/bar:h-2.5 shadow-inner' 
-                      : 'bg-gray-200/70 hover:bg-gray-300 group-hover/bar:h-2'
-                  }`}>
-                    {/* Filled Bar */}
-                    <div
-                      className={`h-full rounded-full transition-[width] ease-linear relative ${
-                        isActive 
-                          ? 'bg-gradient-to-r from-[#08606B] via-[#0d8391] to-[#00D2D3] duration-75 shadow-xs' 
-                          : isPast 
-                            ? 'bg-[#08606B] w-full duration-300' 
-                            : 'bg-transparent w-0 duration-300'
-                      }`}
-                      style={{
-                        width: isActive ? `${progress}%` : isPast ? '100%' : '0%'
-                      }}
-                    >
-                      {/* Active glowing tip light on currently loading bar */}
-                      {isActive && (
-                        <span className="absolute top-0 bottom-0 end-0 w-2.5 bg-[#00D2D3] rounded-full blur-[1px] shadow-[0_0_8px_#00D2D3]" />
-                      )}
-                    </div>
+                {/* Interactive Bar Track */}
+                <div className={`h-1.5 sm:h-2 rounded-full overflow-hidden transition-all duration-300 relative ${
+                  isActive 
+                    ? 'bg-gray-200/90 group-hover/bar:h-2.5 shadow-inner' 
+                    : 'bg-gray-200/70 hover:bg-gray-300 group-hover/bar:h-2'
+                }`}>
+                  {/* Filled Bar */}
+                  <div
+                    className={`h-full rounded-full transition-[width] ease-linear relative ${
+                      isActive 
+                        ? 'bg-gradient-to-r from-[#08606B] via-[#0d8391] to-[#00D2D3] duration-75 shadow-xs' 
+                        : isPast 
+                          ? 'bg-[#08606B] w-full duration-300' 
+                          : 'bg-transparent w-0 duration-300'
+                    }`}
+                    style={{
+                      width: isActive ? `${progress}%` : isPast ? '100%' : '0%'
+                    }}
+                  >
+                    {/* Active glowing tip light on currently loading bar */}
+                    {isActive && (
+                      <span className="absolute top-0 bottom-0 end-0 w-2.5 bg-[#00D2D3] rounded-full blur-[1px] shadow-[0_0_8px_#00D2D3]" />
+                    )}
                   </div>
                 </div>
-              );
-            })}
-          </div>
-
-          {/* Slide Counter Badge */}
-          <div className="flex items-center gap-1 px-2.5 py-1 bg-white/90 rounded-xl border border-gray-200/80 shadow-xs text-xs font-mono font-bold shrink-0">
-            <span className="text-[#08606B] font-black">
-              {String(currentIndex + 1).padStart(2, '0')}
-            </span>
-            <span className="text-gray-300">/</span>
-            <span className="text-gray-400">
-              {String(activeBanners.length).padStart(2, '0')}
-            </span>
-          </div>
+              </div>
+            );
+          })}
         </div>
       )}
     </div>
