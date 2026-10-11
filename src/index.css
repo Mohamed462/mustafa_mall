@@ -105,3 +105,17 @@ a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible
   opacity: 0.35;
   mix-blend-mode: overlay;
 }
+
+/* Hero Carousel Interactive Progress Bar Animation */
+@keyframes heroProgress {
+  0% {
+    width: 0%;
+  }
+  100% {
+    width: 100%;
+  }
+}
+
+.animate-progress {
+  animation: heroProgress 6000ms linear forwards;
+}
