@@ -13,6 +13,13 @@ export default defineConfig({
   server: {
     port: 3000,
     host: true,
+    proxy: {
+      '/api': {
+        target: 'https://mustafa-mall.pages.dev',
+        changeOrigin: true,
+        secure: true,
+      },
+    },
   },
   build: {
     rollupOptions: {

@@ -13,8 +13,9 @@ import { CustomerReviewsSection } from '../../components/home/CustomerReviewsSec
 export const HomePage: React.FC = () => {
   const { banners, categories } = useStoreSettings();
   const [sections, setSections] = useState<HomepageSection[]>(() => dbStore.getHomepageSections());
+  const [products, setProducts] = useState(() => dbStore.getProducts());
 
-  const allProducts = dbStore.getProducts().filter(p => p.is_active);
+  const allProducts = products.filter(p => p.is_active);
 
   // Curated collections
   const offersProducts = allProducts.filter(p => p.original_price_egp && p.original_price_egp > p.price_egp);
@@ -24,7 +25,8 @@ export const HomePage: React.FC = () => {
   // Sync with live db changes immediately
   useEffect(() => {
     const handleUpdate = () => {
-      setSections(dbStore.getHomepageSections());
+      setSections([...dbStore.getHomepageSections()]);
+      setProducts([...dbStore.getProducts()]);
     };
     window.addEventListener('al_mostafa_content_updated', handleUpdate);
     window.addEventListener('al_mostafa_db_updated', handleUpdate);

@@ -6,8 +6,20 @@ import { FilterSidebar, FilterState } from '../../components/catalog/FilterSideb
 import { SlidersHorizontal, ArrowUpDown } from 'lucide-react';
 
 export const ShopPage: React.FC = () => {
-  const allProducts = useMemo(() => dbStore.getProducts().filter(p => p.is_active), []);
-  const categories = useMemo(() => dbStore.getCategories(), []);
+  const [productsVersion, setProductsVersion] = useState(0);
+
+  React.useEffect(() => {
+    const handleUpdate = () => setProductsVersion(v => v + 1);
+    window.addEventListener('al_mostafa_db_updated', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+    return () => {
+      window.removeEventListener('al_mostafa_db_updated', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
+  }, []);
+
+  const allProducts = useMemo(() => dbStore.getProducts().filter(p => p.is_active), [productsVersion]);
+  const categories = useMemo(() => dbStore.getCategories(), [productsVersion]);
 
   const [sortBy, setSortBy] = useState<'recommended' | 'newest' | 'price_asc' | 'price_desc' | 'popular'>('recommended');
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);

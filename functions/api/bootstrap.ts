@@ -2,15 +2,20 @@ interface Env {
   DB?: D1Database;
 }
 
+const headers = {
+  'Content-Type': 'application/json; charset=utf-8',
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Methods': 'GET, OPTIONS',
+  'Access-Control-Allow-Headers': 'Content-Type, Authorization',
+  'Cache-Control': 'no-cache, no-store, must-revalidate',
+};
+
+export const onRequestOptions: PagesFunction<Env> = async () => {
+  return new Response(null, { headers, status: 204 });
+};
+
 export const onRequestGet: PagesFunction<Env> = async (context) => {
   const { env } = context;
-
-  // CORS headers
-  const headers = {
-    'Content-Type': 'application/json; charset=utf-8',
-    'Access-Control-Allow-Origin': '*',
-    'Cache-Control': 'no-cache',
-  };
 
   if (!env.DB) {
     return new Response(JSON.stringify({ 
@@ -47,6 +52,22 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       variants: typeof p.variants_json === 'string' ? JSON.parse(p.variants_json || '[]') : (p.variants || []),
     }));
 
+    // Format categories: root categories with nested children
+    const rawCategories: any[] = categoriesRes.results || [];
+    const rootCategories = rawCategories.filter(c => !c.parent_id);
+    const formattedCategories = rootCategories.map(root => ({
+      ...root,
+      is_active: Boolean(root.is_active),
+      is_featured: Boolean(root.is_featured),
+      children: rawCategories
+        .filter(c => c.parent_id === root.id)
+        .map(sub => ({
+          ...sub,
+          is_active: Boolean(sub.is_active),
+          is_featured: Boolean(sub.is_featured),
+        }))
+    }));
+
     // Format shipping rates
     const formattedShippingRates = (shippingRatesRes.results || []).map((r: any) => ({
       ...r,
@@ -63,7 +84,7 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
           governorate_shipping_rates: formattedShippingRates,
         } : null,
         shipping_rates: formattedShippingRates,
-        categories: categoriesRes.results || [],
+        categories: formattedCategories,
         brands: brandsRes.results || [],
         products: formattedProducts,
         print_services: printServicesRes.results || [],

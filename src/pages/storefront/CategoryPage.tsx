@@ -8,10 +8,21 @@ import { SlidersHorizontal, ArrowUpDown } from 'lucide-react';
 
 export const CategoryPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
+  const [version, setVersion] = useState(0);
+
+  React.useEffect(() => {
+    const handleUpdate = () => setVersion(v => v + 1);
+    window.addEventListener('al_mostafa_db_updated', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+    return () => {
+      window.removeEventListener('al_mostafa_db_updated', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
+  }, []);
 
   const category = useMemo(() => {
     return slug ? dbStore.getCategoryBySlug(slug) : undefined;
-  }, [slug]);
+  }, [slug, version]);
 
   // Determine all category IDs under this category (parent + children)
   const categoryIds = useMemo(() => {
@@ -21,12 +32,12 @@ export const CategoryPage: React.FC = () => {
       ids.push(...category.children.map(c => c.id));
     }
     return ids;
-  }, [category]);
+  }, [category, version]);
 
   const allProducts = useMemo(() => {
     if (!category) return [];
     return dbStore.getProducts().filter(p => p.is_active && categoryIds.includes(p.category_id));
-  }, [category, categoryIds]);
+  }, [category, categoryIds, version]);
 
   const [sortBy, setSortBy] = useState<'recommended' | 'newest' | 'price_asc' | 'price_desc' | 'popular'>('recommended');
   const [isMobileFilterOpen, setIsMobileFilterOpen] = useState(false);

@@ -36,10 +36,21 @@ export const ProductDetailPage: React.FC = () => {
   const { addToCart } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
   const { settings } = useStoreSettings();
+  const [version, setVersion] = useState(0);
+
+  useEffect(() => {
+    const handleUpdate = () => setVersion(v => v + 1);
+    window.addEventListener('al_mostafa_db_updated', handleUpdate);
+    window.addEventListener('storage', handleUpdate);
+    return () => {
+      window.removeEventListener('al_mostafa_db_updated', handleUpdate);
+      window.removeEventListener('storage', handleUpdate);
+    };
+  }, []);
 
   const product = useMemo(() => {
     return slug ? dbStore.getProductBySlug(slug) : undefined;
-  }, [slug]);
+  }, [slug, version]);
 
   const [selectedImageIndex, setSelectedImageIndex] = useState(0);
   const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);

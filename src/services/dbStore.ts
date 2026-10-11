@@ -184,7 +184,11 @@ function loadState(): StoreState {
             : parsed.settings.logo_url,
           governorate_shipping_rates: resolvedShippingRates,
         },
-        categories: parsed.categories?.length ? parsed.categories : clone(INITIAL_CATEGORIES),
+        categories: (() => {
+          const cats = parsed.categories?.length ? parsed.categories : clone(INITIAL_CATEGORIES);
+          const rootOnly = cats.filter((c: any) => !c.parent_id);
+          return rootOnly.length > 0 ? rootOnly : clone(INITIAL_CATEGORIES);
+        })(),
         brands: parsed.brands?.length ? parsed.brands : clone(INITIAL_BRANDS),
         products: parsed.products?.length 
           ? parsed.products.map((p: Product) => {
@@ -301,12 +305,28 @@ function saveState(state: StoreState) {
 // In-Memory active singleton
 let state = loadState();
 
+const getApiBase = () => {
+  if (typeof window === 'undefined') return '';
+  const host = window.location.hostname;
+  if (
+    host === 'localhost' ||
+    host === '127.0.0.1' ||
+    host.startsWith('192.168.') ||
+    host.startsWith('10.') ||
+    host.startsWith('172.') ||
+    !host.includes('.')
+  ) {
+    return 'https://mustafa-mall.pages.dev';
+  }
+  return '';
+};
+
 async function syncFromCloud(): Promise<boolean> {
   if (typeof window === 'undefined') return false;
   try {
-    const res = await fetch('/api/bootstrap', {
+    const res = await fetch(`${getApiBase()}/api/bootstrap?_t=${Date.now()}`, {
       headers: { 'Accept': 'application/json' },
-      cache: 'no-cache'
+      cache: 'no-store'
     });
     if (!res.ok) return false;
     const json = await res.json();
@@ -339,8 +359,11 @@ async function syncFromCloud(): Promise<boolean> {
     }
 
     if (Array.isArray(data.categories) && data.categories.length > 0) {
-      state.categories = data.categories;
-      hasChanges = true;
+      const rootOnly = data.categories.filter((c: any) => !c.parent_id);
+      if (rootOnly.length > 0) {
+        state.categories = rootOnly;
+        hasChanges = true;
+      }
     }
 
     if (Array.isArray(data.brands) && data.brands.length > 0) {
@@ -364,11 +387,27 @@ async function syncFromCloud(): Promise<boolean> {
   }
 }
 
-// Background sync from Cloudflare D1 on application startup
+// Background sync from Cloudflare D1 on application startup & lifecycle events
 if (typeof window !== 'undefined') {
   setTimeout(() => {
     syncFromCloud();
-  }, 250);
+  }, 100);
+
+  // Sync on tab visibility / focus (e.g. user switching between phone and computer)
+  document.addEventListener('visibilitychange', () => {
+    if (document.visibilityState === 'visible') {
+      syncFromCloud();
+    }
+  });
+
+  window.addEventListener('focus', () => {
+    syncFromCloud();
+  });
+
+  // Background polling every 20s for real-time multi-device sync
+  setInterval(() => {
+    syncFromCloud();
+  }, 20000);
 }
 
 export const dbStore = {
@@ -413,7 +452,7 @@ export const dbStore = {
 
     // Push to Cloudflare D1
     if (typeof window !== 'undefined') {
-      fetch('/api/settings', {
+      fetch(`${getApiBase()}/api/settings`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(state.settings),
@@ -453,7 +492,7 @@ export const dbStore = {
     dbStore.logAudit('update', 'shipping_rates', 'rates', 'تم تحديث أسعار شحن المحافظات');
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('al_mostafa_shipping_updated'));
-      fetch('/api/settings', {
+      fetch(`${getApiBase()}/api/settings`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ governorate_shipping_rates: rates }),
@@ -464,7 +503,7 @@ export const dbStore = {
 
   // CATEGORIES
   getCategories: (): Category[] => {
-    return [...state.categories];
+    return (state.categories || []).filter(c => !c.parent_id);
   },
   getCategoryBySlug: (slug: string): Category | undefined => {
     for (const cat of state.categories) {
@@ -651,7 +690,7 @@ export const dbStore = {
     dbStore.logAudit(isNew ? 'create' : 'update', 'products', prodId, `حفظ المنتج: ${fullProduct.name_ar}`);
 
     if (typeof window !== 'undefined') {
-      fetch('/api/products', {
+      fetch(`${getApiBase()}/api/products`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(fullProduct),
@@ -798,7 +837,7 @@ export const dbStore = {
     dbStore.logAudit('create', 'orders', orderId, `إنشاء طلب جديد رقم ${orderNumber}`);
 
     if (typeof window !== 'undefined') {
-      fetch('/api/orders', {
+      fetch(`${getApiBase()}/api/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newOrder),
@@ -895,7 +934,7 @@ export const dbStore = {
     dbStore.logAudit('update', 'orders', orderId, `تحديث حالة الطلب ${order.order_number} إلى ${toStatus}`);
 
     if (typeof window !== 'undefined') {
-      fetch('/api/orders', {
+      fetch(`${getApiBase()}/api/orders`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'update_status', id: orderId, order_status: toStatus }),
