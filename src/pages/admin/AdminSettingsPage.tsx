@@ -18,7 +18,9 @@ import {
   Upload,
   Database,
   Trash2,
-  AlertTriangle
+  AlertTriangle,
+  Layers,
+  LayoutGrid
 } from 'lucide-react';
 
 export const AdminSettingsPage: React.FC = () => {
@@ -38,6 +40,7 @@ export const AdminSettingsPage: React.FC = () => {
     is_cod_enabled: settings.is_cod_enabled,
     announcement_text_ar: settings.announcement_text_ar,
     is_announcement_enabled: settings.is_announcement_enabled,
+    category_display_style: settings.category_display_style || 'images_only',
   });
 
   const [isSaved, setIsSaved] = useState(false);
@@ -53,6 +56,7 @@ export const AdminSettingsPage: React.FC = () => {
       ...formData,
       shipping_flat_fee_egp: Number(formData.shipping_flat_fee_egp),
       free_shipping_threshold_egp: Number(formData.free_shipping_threshold_egp),
+      category_display_style: formData.category_display_style as any,
     });
     setIsSaved(true);
     setTimeout(() => setIsSaved(false), 3000);
@@ -185,6 +189,93 @@ export const AdminSettingsPage: React.FC = () => {
               <p className="text-[10px] text-gray-400 mt-1">
                 المسار الافتراضي: <code>/logo.svg</code> (اللوجو الأساسي) أو <code>/logo-light.svg</code>
               </p>
+            </div>
+          </div>
+        </div>
+
+        {/* Section 1.5: Category Display Style */}
+        <div className="bg-white p-6 rounded-3xl border border-gray-200 shadow-xs space-y-4">
+          <div className="border-b border-gray-100 pb-3 flex flex-col sm:flex-row sm:items-center justify-between gap-2">
+            <h3 className="font-black text-sm text-gray-900 flex items-center gap-2">
+              <Layers className="w-4 h-4 text-mall-900" />
+              <span>نمط عرض بطاقات الأقسام في واجهة المتجر الرئيسية</span>
+            </h3>
+            <span className="text-[11px] text-gray-400 font-bold">
+              يحدد مظهر بطاقات الأقسام للزوار على الهاتف والكمبيوتر
+            </span>
+          </div>
+
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 text-xs">
+            {/* images_only */}
+            <div 
+              onClick={() => handleChange('category_display_style', 'images_only')}
+              className={`p-4 rounded-2xl border cursor-pointer transition-all ${
+                formData.category_display_style === 'images_only'
+                  ? 'border-[#08606B] bg-[#08606B]/5 ring-2 ring-[#08606B]/30'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-black text-[#04383f] flex items-center gap-1.5">
+                  <ImageIcon className="w-4 h-4 text-[#08606B]" />
+                  <span>صور فقط (images_only)</span>
+                </span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#00D2D3]/20 text-[#04383f]">
+                  الموصى به
+                </span>
+              </div>
+              <p className="text-[11px] text-gray-600 leading-relaxed mb-3">
+                بوسترات مرئية نقية بدون أي نصوص خارجية (الوضع المفضل للتصاميم والبوسترات المدمج بها خطوط وتصاميم).
+              </p>
+              <div className="text-[10px] font-bold text-[#08606B]">
+                {formData.category_display_style === 'images_only' ? '✓ محدد حالياً' : 'انقر للتحديد'}
+              </div>
+            </div>
+
+            {/* overlay */}
+            <div 
+              onClick={() => handleChange('category_display_style', 'overlay')}
+              className={`p-4 rounded-2xl border cursor-pointer transition-all ${
+                formData.category_display_style === 'overlay'
+                  ? 'border-[#08606B] bg-[#08606B]/5 ring-2 ring-[#08606B]/30'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-black text-[#04383f] flex items-center gap-1.5">
+                  <Layers className="w-4 h-4 text-[#08606B]" />
+                  <span>نصوص مدمجة (overlay)</span>
+                </span>
+              </div>
+              <p className="text-[11px] text-gray-600 leading-relaxed mb-3">
+                نصوص زجاجية متدرجة تظهر بشكل عصري فوق الصورة مع سهم التوجيه.
+              </p>
+              <div className="text-[10px] font-bold text-[#08606B]">
+                {formData.category_display_style === 'overlay' ? '✓ محدد حالياً' : 'انقر للتحديد'}
+              </div>
+            </div>
+
+            {/* minimal */}
+            <div 
+              onClick={() => handleChange('category_display_style', 'minimal')}
+              className={`p-4 rounded-2xl border cursor-pointer transition-all ${
+                formData.category_display_style === 'minimal'
+                  ? 'border-[#08606B] bg-[#08606B]/5 ring-2 ring-[#08606B]/30'
+                  : 'border-gray-200 hover:border-gray-300'
+              }`}
+            >
+              <div className="flex items-center justify-between mb-2">
+                <span className="font-black text-[#04383f] flex items-center gap-1.5">
+                  <LayoutGrid className="w-4 h-4 text-[#08606B]" />
+                  <span>بطاقات منفصلة (minimal)</span>
+                </span>
+              </div>
+              <p className="text-[11px] text-gray-600 leading-relaxed mb-3">
+                تصميم بطاقات متاجر عالمية حيث تأتي الصورة في الأعلى وعنوان القسم وزر التصفح في شريط أبيض أنيق بالأسفل.
+              </p>
+              <div className="text-[10px] font-bold text-[#08606B]">
+                {formData.category_display_style === 'minimal' ? '✓ محدد حالياً' : 'انقر للتحديد'}
+              </div>
             </div>
           </div>
         </div>

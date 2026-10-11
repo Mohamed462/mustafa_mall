@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { dbStore } from '../../services/dbStore';
+import { useStoreSettings } from '../../context/StoreSettingsContext';
 import { Category, DepartmentKey, Product } from '../../types';
 import { formatEGP } from '../../utils/formatters';
 import { 
@@ -15,7 +16,12 @@ import {
   ExternalLink,
   X,
   Save,
-  CheckCircle2
+  CheckCircle2,
+  Image as ImageIcon,
+  LayoutGrid,
+  Eye,
+  Check,
+  Sparkles
 } from 'lucide-react';
 
 const DEPARTMENTS: { key: DepartmentKey; label: string }[] = [
@@ -35,6 +41,22 @@ export const AdminCategoriesPage: React.FC = () => {
   const [editingCategory, setEditingCategory] = useState<Partial<Category> | null>(null);
   const [isCategoryModalOpen, setIsCategoryModalOpen] = useState(false);
   const [expandedCatIds, setExpandedCatIds] = useState<string[]>([]);
+  
+  // Store Settings (Display Style Control)
+  const { settings, updateSettings } = useStoreSettings();
+  const currentDisplayStyle = settings.category_display_style || 'images_only';
+  const [styleNotice, setStyleNotice] = useState<string | null>(null);
+
+  const handleSelectDisplayStyle = (style: 'images_only' | 'overlay' | 'minimal') => {
+    updateSettings({ category_display_style: style });
+    const labels = {
+      images_only: '🖼️ صور فقط (بوسترات نقية)',
+      overlay: '🏷️ نصوص مدمجة (Glass Overlay)',
+      minimal: '📱 بطاقات منفصلة (Cards Minimal)',
+    };
+    setStyleNotice(`تم تحديث نمط عرض الأقسام في المتجر بنجاح إلى: ${labels[style]}`);
+    setTimeout(() => setStyleNotice(null), 4000);
+  };
   
   // Quick Add Product Modal state
   const [quickAddCat, setQuickAddCat] = useState<Category | null>(null);
@@ -181,6 +203,190 @@ export const AdminCategoriesPage: React.FC = () => {
           <Plus className="w-4 h-4" />
           <span>إضافة قسم جديد</span>
         </button>
+      </div>
+
+      {/* Category Display Mode Settings in Storefront */}
+      <div className="bg-white rounded-3xl border border-gray-100 shadow-card p-6 space-y-4">
+        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-3 border-b border-gray-100">
+          <div>
+            <div className="flex items-center gap-2">
+              <span className="p-2 rounded-xl bg-[#08606B]/10 text-[#08606B]">
+                <Layers className="w-5 h-5" />
+              </span>
+              <h2 className="text-base font-black text-mall-900">
+                نمط عرض بطاقات الأقسام في واجهة المتجر الرئيسية
+              </h2>
+            </div>
+            <p className="text-xs text-gray-500 mt-1">
+              تحكم بأسلوب عرض صور وأقسام المول للزوار على اللابتوب والموبايل (يتم التطبيق فورياً على المتجر)
+            </p>
+          </div>
+
+          <a 
+            href="/" 
+            target="_blank" 
+            rel="noopener noreferrer"
+            className="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl border border-gray-200 text-gray-700 hover:bg-gray-50 text-xs font-bold transition-colors cursor-pointer self-start sm:self-auto"
+          >
+            <Eye className="w-3.5 h-3.5 text-[#08606B]" />
+            <span>معاينة المتجر في نافذة جديدة</span>
+          </a>
+        </div>
+
+        {styleNotice && (
+          <div className="p-3 bg-emerald-50 border border-emerald-200 text-emerald-800 text-xs font-bold rounded-xl flex items-center gap-2 animate-fade-in">
+            <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+            <span>{styleNotice}</span>
+          </div>
+        )}
+
+        {/* 3 Interactive Mode Selection Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-4 pt-1">
+          {/* Option 1: images_only */}
+          <button
+            type="button"
+            onClick={() => handleSelectDisplayStyle('images_only')}
+            className={`p-4 rounded-2xl border text-right transition-all cursor-pointer relative flex flex-col justify-between ${
+              currentDisplayStyle === 'images_only'
+                ? 'border-[#08606B] bg-[#08606B]/5 ring-2 ring-[#08606B]/30 shadow-sm'
+                : 'border-gray-200 hover:border-[#08606B]/40 hover:bg-gray-50/50'
+            }`}
+          >
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="inline-flex items-center gap-1 text-sm font-black text-[#04383f]">
+                  <ImageIcon className="w-4 h-4 text-[#08606B]" />
+                  <span>صور فقط (Images Only)</span>
+                </span>
+                <span className="text-[10px] font-bold px-2 py-0.5 rounded-full bg-[#00D2D3]/20 text-[#04383f]">
+                  الموصى به
+                </span>
+              </div>
+              <p className="text-[11px] text-gray-600 leading-relaxed">
+                بوسترات مرئية نقية بدون أي نصوص خارجية (الوضع المفضل للتصاميم والبوسترات المدمج بها خطوط وتصاميم جاهزة).
+              </p>
+              {/* Visual Mini Preview */}
+              <div className="mt-3 h-20 rounded-xl overflow-hidden bg-gray-200 relative border border-gray-300/40">
+                <img 
+                  src="https://images.unsplash.com/photo-1583947215259-38e31be8751f?auto=format&fit=crop&w=400&q=70" 
+                  alt="معاينة صور فقط" 
+                  className="w-full h-full object-cover"
+                />
+              </div>
+            </div>
+
+            <div className="mt-4 pt-2 border-t border-gray-100 flex items-center justify-between">
+              <span className={`text-[11px] font-bold ${
+                currentDisplayStyle === 'images_only' ? 'text-[#08606B]' : 'text-gray-400'
+              }`}>
+                {currentDisplayStyle === 'images_only' ? '✓ النمط المعتمد حالياً' : 'انقر للتفعيل'}
+              </span>
+              {currentDisplayStyle === 'images_only' && (
+                <div className="w-5 h-5 rounded-full bg-[#08606B] text-white flex items-center justify-center">
+                  <Check className="w-3 h-3" />
+                </div>
+              )}
+            </div>
+          </button>
+
+          {/* Option 2: overlay */}
+          <button
+            type="button"
+            onClick={() => handleSelectDisplayStyle('overlay')}
+            className={`p-4 rounded-2xl border text-right transition-all cursor-pointer relative flex flex-col justify-between ${
+              currentDisplayStyle === 'overlay'
+                ? 'border-[#08606B] bg-[#08606B]/5 ring-2 ring-[#08606B]/30 shadow-sm'
+                : 'border-gray-200 hover:border-[#08606B]/40 hover:bg-gray-50/50'
+            }`}
+          >
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="inline-flex items-center gap-1 text-sm font-black text-[#04383f]">
+                  <Layers className="w-4 h-4 text-[#08606B]" />
+                  <span>نصوص مدمجة (Glass Overlay)</span>
+                </span>
+              </div>
+              <p className="text-[11px] text-gray-600 leading-relaxed">
+                نصوص زجاجية متدرجة تظهر بشكل عصري فوق خلفية الصورة مع سهم التوجيه.
+              </p>
+              {/* Visual Mini Preview */}
+              <div className="mt-3 h-20 rounded-xl overflow-hidden bg-gray-200 relative border border-gray-300/40">
+                <img 
+                  src="https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=400&q=70" 
+                  alt="معاينة نصوص مدمجة" 
+                  className="w-full h-full object-cover"
+                />
+                <div className="absolute inset-0 bg-gradient-to-t from-[#04383f]/90 via-[#04383f]/40 to-transparent flex items-end p-2 justify-between">
+                  <span className="text-[10px] font-bold text-white drop-shadow-xs">اسم القسم</span>
+                  <span className="w-4 h-4 rounded-full bg-white/20 text-white flex items-center justify-center text-[8px]">←</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 pt-2 border-t border-gray-100 flex items-center justify-between">
+              <span className={`text-[11px] font-bold ${
+                currentDisplayStyle === 'overlay' ? 'text-[#08606B]' : 'text-gray-400'
+              }`}>
+                {currentDisplayStyle === 'overlay' ? '✓ النمط المعتمد حالياً' : 'انقر للتفعيل'}
+              </span>
+              {currentDisplayStyle === 'overlay' && (
+                <div className="w-5 h-5 rounded-full bg-[#08606B] text-white flex items-center justify-center">
+                  <Check className="w-3 h-3" />
+                </div>
+              )}
+            </div>
+          </button>
+
+          {/* Option 3: minimal */}
+          <button
+            type="button"
+            onClick={() => handleSelectDisplayStyle('minimal')}
+            className={`p-4 rounded-2xl border text-right transition-all cursor-pointer relative flex flex-col justify-between ${
+              currentDisplayStyle === 'minimal'
+                ? 'border-[#08606B] bg-[#08606B]/5 ring-2 ring-[#08606B]/30 shadow-sm'
+                : 'border-gray-200 hover:border-[#08606B]/40 hover:bg-gray-50/50'
+            }`}
+          >
+            <div className="space-y-2">
+              <div className="flex items-center justify-between">
+                <span className="inline-flex items-center gap-1 text-sm font-black text-[#04383f]">
+                  <LayoutGrid className="w-4 h-4 text-[#08606B]" />
+                  <span>بطاقات منفصلة (Cards Minimal)</span>
+                </span>
+              </div>
+              <p className="text-[11px] text-gray-600 leading-relaxed">
+                تصميم بطاقات متاجر عالمية حيث تأتي الصورة في الأعلى وعنوان القسم وزر التصفح في شريط أبيض أنيق بالأسفل.
+              </p>
+              {/* Visual Mini Preview */}
+              <div className="mt-3 h-20 rounded-xl overflow-hidden bg-white border border-gray-200 flex flex-col">
+                <div className="h-12 bg-gray-200 overflow-hidden">
+                  <img 
+                    src="https://images.unsplash.com/photo-1456735190827-d1262f71b8a3?auto=format&fit=crop&w=400&q=70" 
+                    alt="معاينة بطاقات منفصلة" 
+                    className="w-full h-full object-cover"
+                  />
+                </div>
+                <div className="h-8 px-2 flex items-center justify-between bg-white border-t border-gray-100">
+                  <span className="text-[9px] font-bold text-gray-800">اسم القسم</span>
+                  <span className="text-[8px] text-[#08606B] font-bold">استعراض ←</span>
+                </div>
+              </div>
+            </div>
+
+            <div className="mt-4 pt-2 border-t border-gray-100 flex items-center justify-between">
+              <span className={`text-[11px] font-bold ${
+                currentDisplayStyle === 'minimal' ? 'text-[#08606B]' : 'text-gray-400'
+              }`}>
+                {currentDisplayStyle === 'minimal' ? '✓ النمط المعتمد حالياً' : 'انقر للتفعيل'}
+              </span>
+              {currentDisplayStyle === 'minimal' && (
+                <div className="w-5 h-5 rounded-full bg-[#08606B] text-white flex items-center justify-center">
+                  <Check className="w-3 h-3" />
+                </div>
+              )}
+            </div>
+          </button>
+        </div>
       </div>
 
       {quickAddNotice && (

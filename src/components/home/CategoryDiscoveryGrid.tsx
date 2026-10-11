@@ -1,9 +1,11 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Category } from '../../types';
-import { ArrowLeft, Sparkles, ChevronDown, ChevronUp, Image as ImageIcon, Layers, LayoutGrid } from 'lucide-react';
+import { ArrowLeft, Sparkles, ChevronDown, ChevronUp } from 'lucide-react';
 import { TextureButton } from '../common/TextureButton';
 import { dbStore } from '../../services/dbStore';
+
+import { useStoreSettings } from '../../context/StoreSettingsContext';
 
 interface CategoryDiscoveryGridProps {
   categories: Category[];
@@ -25,28 +27,10 @@ const CATEGORY_IMAGES: Record<string, string> = {
 
 export const CategoryDiscoveryGrid: React.FC<CategoryDiscoveryGridProps> = ({ categories }) => {
   const [showAllMobile, setShowAllMobile] = useState(false);
+  const { settings } = useStoreSettings();
   
-  // Display style: initialized from settings or saved preferences (defaults to images_only as requested)
-  const [displayStyle, setDisplayStyle] = useState<CategoryDisplayStyle>(() => {
-    try {
-      const saved = localStorage.getItem('al_mostafa_cat_style') as CategoryDisplayStyle;
-      if (saved && ['images_only', 'overlay', 'minimal'].includes(saved)) {
-        return saved;
-      }
-      const storeSettings = dbStore.getSettings();
-      return storeSettings.category_display_style || 'images_only';
-    } catch {
-      return 'images_only';
-    }
-  });
-
-  const handleStyleChange = (style: CategoryDisplayStyle) => {
-    setDisplayStyle(style);
-    try {
-      localStorage.setItem('al_mostafa_cat_style', style);
-      dbStore.updateSettings({ category_display_style: style });
-    } catch {}
-  };
+  // Display style is centrally controlled by the store administrator in Admin Panel
+  const displayStyle: CategoryDisplayStyle = settings.category_display_style || 'images_only';
 
   const sortedCategories = [...categories].sort((a, b) => a.sort_order - b.sort_order);
 
@@ -68,8 +52,8 @@ export const CategoryDiscoveryGrid: React.FC<CategoryDiscoveryGridProps> = ({ ca
 
   return (
     <section className="max-w-7xl mx-auto px-4 py-8 font-arabic text-right">
-      {/* Section Header with Controls */}
-      <div className="flex flex-col md:flex-row md:items-end justify-between gap-4 mb-6 pb-4 border-b border-[rgba(17,21,26,0.11)]">
+      {/* Section Header */}
+      <div className="flex flex-col sm:flex-row sm:items-end justify-between gap-4 mb-6 pb-4 border-b border-[rgba(17,21,26,0.11)]">
         <div>
           <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#08606B] mb-1">
             <Sparkles className="w-3.5 h-3.5 text-[#00D2D3]" />
@@ -83,61 +67,13 @@ export const CategoryDiscoveryGrid: React.FC<CategoryDiscoveryGridProps> = ({ ca
           </p>
         </div>
 
-        {/* Interactive Display Style Switcher + View All Link */}
-        <div className="flex items-center gap-3 flex-wrap justify-between md:justify-end">
-          {/* Aesthetic Mode Switcher Pills */}
-          <div className="inline-flex items-center p-1 bg-gray-100/90 rounded-2xl border border-gray-200/80 shadow-xs text-xs font-bold">
-            <button
-              type="button"
-              onClick={() => handleStyleChange('images_only')}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
-                displayStyle === 'images_only'
-                  ? 'bg-[#08606B] text-white shadow-xs'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-              title="عرض بوسترات وصور فقط بدون نصوص"
-            >
-              <ImageIcon className="w-3.5 h-3.5" />
-              <span>صور فقط</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleStyleChange('overlay')}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
-                displayStyle === 'overlay'
-                  ? 'bg-[#08606B] text-white shadow-xs'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-              title="عرض مع نصوص وعناوين مدمجة"
-            >
-              <Layers className="w-3.5 h-3.5" />
-              <span>نصوص مدمجة</span>
-            </button>
-
-            <button
-              type="button"
-              onClick={() => handleStyleChange('minimal')}
-              className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-xl transition-all cursor-pointer ${
-                displayStyle === 'minimal'
-                  ? 'bg-[#08606B] text-white shadow-xs'
-                  : 'text-gray-600 hover:text-gray-900'
-              }`}
-              title="عرض كبطاقات كروت حديثة"
-            >
-              <LayoutGrid className="w-3.5 h-3.5" />
-              <span>بطاقات منفصلة</span>
-            </button>
-          </div>
-
-          <Link 
-            to="/shop" 
-            className="hidden sm:inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-[#04383f] hover:text-[#08606B] transition-colors group"
-          >
-            <span>تصفح كافة الأقسام</span>
-            <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
-          </Link>
-        </div>
+        <Link 
+          to="/shop" 
+          className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-[#04383f] hover:text-[#08606B] transition-colors group self-start sm:self-end"
+        >
+          <span>تصفح كافة الأقسام</span>
+          <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
+        </Link>
       </div>
 
       {/* Quick Mobile Category Story Bubbles (Horizontal swipeable on phone) */}
