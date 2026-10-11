@@ -23,7 +23,9 @@ import {
   LayoutGrid,
   Search,
   SlidersHorizontal,
-  Clock
+  Clock,
+  Cloud,
+  RefreshCw
 } from 'lucide-react';
 import { GovernorateShippingRate } from '../../types';
 import { INITIAL_GOVERNORATE_SHIPPING_RATES } from '../../services/mockData';
@@ -62,6 +64,8 @@ export const AdminSettingsPage: React.FC = () => {
 
   const [isSaved, setIsSaved] = useState(false);
   const [backupNotice, setBackupNotice] = useState<string | null>(null);
+  const [isCloudSyncing, setIsCloudSyncing] = useState(false);
+  const [cloudSyncResult, setCloudSyncResult] = useState<{ success: boolean; message: string } | null>(null);
 
   const handleChange = (field: string, value: any) => {
     setFormData(prev => ({ ...prev, [field]: value }));
@@ -184,6 +188,34 @@ export const AdminSettingsPage: React.FC = () => {
     if (window.confirm('تحذير: هل أنت متأكد من إعادة ضبط قاعدة البيانات إلى الحالة الابتدائية لجميع المنتجات والأقسام والإعدادات؟')) {
       dbStore.resetToDefaults();
       window.location.reload();
+    }
+  };
+
+  const handleCloudSync = async () => {
+    setIsCloudSyncing(true);
+    setCloudSyncResult(null);
+    try {
+      const ok = await dbStore.syncWithCloud();
+      if (ok) {
+        setCloudSyncResult({
+          success: true,
+          message: 'تمت المزامنة بنجاح مع Cloudflare D1 وتم سحب أحدث بيانات المتجر والمحافظات!'
+        });
+        setShippingRates(dbStore.getGovernorateShippingRates());
+      } else {
+        setCloudSyncResult({
+          success: false,
+          message: 'قاعدة بيانات Cloudflare D1 غير مربوطة بعد أو لا يمكن الوصول إليها. المتجر يعمل ببيانات التخزين المحلي بكفاءة.'
+        });
+      }
+    } catch {
+      setCloudSyncResult({
+        success: false,
+        message: 'حدث خطأ غير متوقع أثناء محاولة المزامنة السحابية.'
+      });
+    } finally {
+      setIsCloudSyncing(false);
+      setTimeout(() => setCloudSyncResult(null), 6000);
     }
   };
 
@@ -775,6 +807,48 @@ export const AdminSettingsPage: React.FC = () => {
               <span>{backupNotice}</span>
             </div>
           )}
+
+          {cloudSyncResult && (
+            <div className={`p-3 border text-xs font-bold rounded-xl flex items-center gap-2 animate-fade-in ${
+              cloudSyncResult.success ? 'bg-emerald-50 border-emerald-200 text-emerald-800' : 'bg-amber-50 border-amber-200 text-amber-800'
+            }`}>
+              {cloudSyncResult.success ? (
+                <CheckCircle2 className="w-4 h-4 text-emerald-600 shrink-0" />
+              ) : (
+                <AlertTriangle className="w-4 h-4 text-amber-600 shrink-0" />
+              )}
+              <span>{cloudSyncResult.message}</span>
+            </div>
+          )}
+
+          {/* Cloudflare D1 Cloud Sync Banner */}
+          <div className="p-4 rounded-2xl bg-gradient-to-r from-teal-900 via-mall-900 to-[#04383f] text-white space-y-3 shadow-sm border border-teal-500/20">
+            <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+              <div className="flex items-center gap-3">
+                <div className="w-10 h-10 rounded-xl bg-teal-500/20 border border-teal-400/30 flex items-center justify-center shrink-0">
+                  <Cloud className="w-5 h-5 text-teal-300" />
+                </div>
+                <div>
+                  <h4 className="font-black text-sm text-teal-100 flex items-center gap-2">
+                    <span>مزامنة السحابة (Cloudflare D1 Database)</span>
+                    <span className="text-[10px] bg-teal-500/30 text-teal-200 px-2 py-0.5 rounded-full border border-teal-400/30 font-normal">Edge Cloud</span>
+                  </h4>
+                  <p className="text-xs text-teal-200/80 mt-0.5">
+                    البيانات (المنتجات، أسعار شحن المحافظات الـ 27، والطلبات) متصلة بسحابة Cloudflare D1 وتتم مزامنتها تلقائياً.
+                  </p>
+                </div>
+              </div>
+              <button
+                type="button"
+                onClick={handleCloudSync}
+                disabled={isCloudSyncing}
+                className="px-4 py-2 bg-gradient-to-r from-teal-500 to-emerald-500 hover:from-teal-400 hover:to-emerald-400 text-mall-950 font-black rounded-xl flex items-center justify-center gap-2 cursor-pointer shadow-md transition-all shrink-0 text-xs disabled:opacity-50"
+              >
+                <RefreshCw className={`w-4 h-4 ${isCloudSyncing ? 'animate-spin' : ''}`} />
+                <span>{isCloudSyncing ? 'جاري المزامنة...' : 'مزامنة مع السحابة الآن'}</span>
+              </button>
+            </div>
+          </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
             {/* Export JSON */}

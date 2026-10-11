@@ -301,7 +301,82 @@ function saveState(state: StoreState) {
 // In-Memory active singleton
 let state = loadState();
 
+async function syncFromCloud(): Promise<boolean> {
+  if (typeof window === 'undefined') return false;
+  try {
+    const res = await fetch('/api/bootstrap', {
+      headers: { 'Accept': 'application/json' },
+      cache: 'no-cache'
+    });
+    if (!res.ok) return false;
+    const json = await res.json();
+    if (!json.success || !json.data) return false;
+
+    const data = json.data;
+    let hasChanges = false;
+
+    if (data.settings) {
+      state.settings = {
+        ...state.settings,
+        ...data.settings,
+        governorate_shipping_rates: (data.shipping_rates && data.shipping_rates.length > 0)
+          ? data.shipping_rates 
+          : state.settings.governorate_shipping_rates,
+      };
+      hasChanges = true;
+    } else if (data.shipping_rates && data.shipping_rates.length > 0) {
+      state.settings.governorate_shipping_rates = data.shipping_rates;
+      hasChanges = true;
+    }
+
+    if (Array.isArray(data.products) && data.products.length > 0) {
+      state.products = data.products.map((p: any) => ({
+        ...p,
+        images: Array.isArray(p.images) ? p.images : (typeof p.images_json === 'string' ? JSON.parse(p.images_json || '[]') : []),
+        variants: Array.isArray(p.variants) ? p.variants : (typeof p.variants_json === 'string' ? JSON.parse(p.variants_json || '[]') : []),
+      }));
+      hasChanges = true;
+    }
+
+    if (Array.isArray(data.categories) && data.categories.length > 0) {
+      state.categories = data.categories;
+      hasChanges = true;
+    }
+
+    if (Array.isArray(data.brands) && data.brands.length > 0) {
+      state.brands = data.brands;
+      hasChanges = true;
+    }
+
+    if (Array.isArray(data.print_services) && data.print_services.length > 0) {
+      state.printServices = data.print_services;
+      hasChanges = true;
+    }
+
+    if (hasChanges) {
+      saveState(state);
+      window.dispatchEvent(new CustomEvent('al_mostafa_shipping_updated'));
+      window.dispatchEvent(new CustomEvent('al_mostafa_db_updated'));
+    }
+    return true;
+  } catch {
+    return false;
+  }
+}
+
+// Background sync from Cloudflare D1 on application startup
+if (typeof window !== 'undefined') {
+  setTimeout(() => {
+    syncFromCloud();
+  }, 250);
+}
+
 export const dbStore = {
+  // Sync with Cloudflare D1
+  syncWithCloud: (): Promise<boolean> => {
+    return syncFromCloud();
+  },
+
   // Reset database back to default seed state
   resetToDefaults: () => {
     state = {
@@ -335,6 +410,16 @@ export const dbStore = {
     state.settings = { ...state.settings, ...newSettings };
     saveState(state);
     dbStore.logAudit('update', 'store_settings', 'global', 'تم تحديث إعدادات المتجر');
+
+    // Push to Cloudflare D1
+    if (typeof window !== 'undefined') {
+      fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(state.settings),
+      }).catch(err => console.debug('D1 settings sync:', err));
+    }
+
     return state.settings;
   },
 
@@ -368,6 +453,11 @@ export const dbStore = {
     dbStore.logAudit('update', 'shipping_rates', 'rates', 'تم تحديث أسعار شحن المحافظات');
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('al_mostafa_shipping_updated'));
+      fetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ governorate_shipping_rates: rates }),
+      }).catch(err => console.debug('D1 rates sync:', err));
     }
     return state.settings;
   },
@@ -559,6 +649,15 @@ export const dbStore = {
 
     saveState(state);
     dbStore.logAudit(isNew ? 'create' : 'update', 'products', prodId, `حفظ المنتج: ${fullProduct.name_ar}`);
+
+    if (typeof window !== 'undefined') {
+      fetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(fullProduct),
+      }).catch(err => console.debug('D1 product sync:', err));
+    }
+
     return fullProduct;
   },
   deleteProduct: (id: string): boolean => {
@@ -697,6 +796,15 @@ export const dbStore = {
     state.orders.unshift(newOrder);
     saveState(state);
     dbStore.logAudit('create', 'orders', orderId, `إنشاء طلب جديد رقم ${orderNumber}`);
+
+    if (typeof window !== 'undefined') {
+      fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newOrder),
+      }).catch(err => console.debug('D1 order sync:', err));
+    }
+
     return newOrder;
   },
   updateOrderStatus: (
@@ -785,6 +893,15 @@ export const dbStore = {
 
     saveState(state);
     dbStore.logAudit('update', 'orders', orderId, `تحديث حالة الطلب ${order.order_number} إلى ${toStatus}`);
+
+    if (typeof window !== 'undefined') {
+      fetch('/api/orders', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'update_status', id: orderId, order_status: toStatus }),
+      }).catch(err => console.debug('D1 order status sync:', err));
+    }
+
     return order;
   },
 

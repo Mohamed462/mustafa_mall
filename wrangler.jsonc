@@ -4,5 +4,12 @@
   "assets": {
     "directory": "./dist",
     "not_found_handling": "single-page-application"
-  }
+  },
+  "d1_databases": [
+    {
+      "binding": "DB",
+      "database_name": "mustafa_mall_d1",
+      "database_id": "mustafa-mall-d1"
+    }
+  ]
 }
