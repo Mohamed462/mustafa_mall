@@ -114,7 +114,7 @@ export const Header: React.FC = () => {
   };
 
   return (
-    <header className="sticky top-0 z-40 bg-[#0A0A0B]/95 backdrop-blur-md text-white shadow-sm border-b border-[#1C2526]">
+    <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md text-[#04383f] shadow-editorial border-b border-[rgba(17,21,26,0.11)]">
       {/* Top Promotional Bar */}
       <AnnouncementBar />
 
@@ -127,7 +127,7 @@ export const Header: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-              className="lg:hidden p-2 text-gray-200 hover:text-white rounded-lg hover:bg-neutral-800 transition-colors"
+              className="lg:hidden p-2 text-[#04383f] hover:text-[#08606B] rounded-lg hover:bg-[#f3f4f6] transition-colors"
               aria-label="فتح القائمة الرئيسية"
             >
               <Menu className="w-6 h-6" />
@@ -138,13 +138,13 @@ export const Header: React.FC = () => {
               <img 
                 src="/brand-logo-transparent.webp" 
                 alt="مول المصطفى - Al Mostafa Mall" 
-                className="h-10 sm:h-12 w-auto object-contain transition-transform group-hover:scale-105 drop-shadow-md"
+                className="h-10 sm:h-12 w-auto object-contain transition-transform group-hover:scale-105 drop-shadow-sm"
               />
               <div className="flex flex-col text-right">
-                <span className="font-cairo font-black text-base sm:text-lg text-white tracking-tight leading-none group-hover:text-[#D4AF37] transition-colors">
+                <span className="font-cairo font-black text-base sm:text-lg text-[#04383f] tracking-tight leading-none group-hover:text-[#08606B] transition-colors">
                   مول المصطفى
                 </span>
-                <span className="text-[9px] sm:text-[10px] text-[#B89B5E] font-semibold tracking-wider">
+                <span className="text-[9px] sm:text-[10px] text-[#08606B] font-bold tracking-wider">
                   AL MOSTAFA MALL
                 </span>
               </div>
@@ -154,33 +154,33 @@ export const Header: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsLocationModalOpen(true)}
-              className="hidden xl:flex items-center gap-2 text-xs text-gray-300 hover:text-[#D4AF37] bg-[#1C2526]/80 px-3 py-1.5 rounded-lg border border-[#2B3537] transition-colors me-2"
+              className="hidden xl:flex items-center gap-2 text-xs text-[#04383f] hover:text-[#08606B] bg-[#f3f4f6] px-3 py-1.5 rounded-lg border border-[rgba(17,21,26,0.11)] transition-colors me-2"
             >
-              <MapPin className="w-3.5 h-3.5 text-[#B89B5E]" />
+              <MapPin className="w-3.5 h-3.5 text-[#08606B]" />
               <div className="text-right">
-                <span className="block text-[10px] text-gray-400">التوصيل إلى:</span>
-                <span className="font-bold text-gray-100">{selectedGovernorate}</span>
+                <span className="block text-[10px] text-[#687280]">التوصيل إلى:</span>
+                <span className="font-bold text-[#04383f]">{selectedGovernorate}</span>
               </div>
-              <ChevronDown className="w-3.5 h-3.5 text-gray-400" />
+              <ChevronDown className="w-3.5 h-3.5 text-[#687280]" />
             </button>
           </div>
 
           {/* Center Section: Prominent Search Bar (Desktop) */}
           <div className="hidden lg:block flex-1 max-w-2xl relative" ref={searchContainerRef}>
             <form onSubmit={handleSearchSubmit} className="relative w-full">
-              <div className="flex items-center w-full bg-white rounded-lg overflow-hidden border-2 border-transparent focus-within:border-[#B89B5E] shadow-sm transition-all">
+              <div className="flex items-center w-full bg-[#f3f4f6] focus-within:bg-white rounded-lg overflow-hidden border border-[rgba(17,21,26,0.11)] focus-within:border-[#08606B] shadow-xs transition-all">
                 <input
                   type="text"
                   value={searchQuery}
                   onChange={(e) => setSearchQuery(e.target.value)}
                   onFocus={() => searchQuery.length >= 2 && setIsSearching(true)}
                   placeholder="بتدور على إيه؟ (ابحث في أكثر من 8 أقسام ومئات المنتجات...)"
-                  className="w-full py-2.5 px-4 text-sm text-gray-900 placeholder:text-gray-400 focus:outline-none"
+                  className="w-full py-2.5 px-4 text-sm text-[#04383f] placeholder:text-[#687280] focus:outline-none bg-transparent"
                   dir="rtl"
                 />
                 <button
                   type="submit"
-                  className="bg-[#B89B5E] hover:bg-[#D4AF37] text-[#0A0A0B] font-bold px-6 py-2.5 flex items-center justify-center transition-colors cursor-pointer"
+                  className="bg-[#08606B] hover:bg-[#03292e] text-white font-bold px-6 py-2.5 flex items-center justify-center transition-colors cursor-pointer"
                   aria-label="بحث"
                 >
                   <Search className="w-5 h-5" />
@@ -190,10 +190,10 @@ export const Header: React.FC = () => {
 
             {/* Search Suggestions Dropdown */}
             {isSearching && (
-              <div className="absolute top-full start-0 w-full mt-1.5 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50 text-right animate-fade-in">
+              <div className="absolute top-full start-0 w-full mt-1.5 bg-white rounded-xl shadow-2xl border border-[rgba(17,21,26,0.11)] overflow-hidden z-50 text-right animate-fade-in">
                 {suggestions.length > 0 ? (
                   <div className="p-2">
-                    <div className="text-[11px] font-bold text-gray-400 px-3 py-1 border-b border-gray-100">
+                    <div className="text-[11px] font-bold text-[#687280] px-3 py-1 border-b border-[rgba(17,21,26,0.11)]/60">
                       منتجات مقترحة
                     </div>
                     {suggestions.map((p) => (
@@ -201,41 +201,41 @@ export const Header: React.FC = () => {
                         key={p.id}
                         type="button"
                         onClick={() => handleSelectSuggestion(p)}
-                        className="w-full flex items-center justify-between p-2.5 hover:bg-gold-50/60 rounded-lg transition-colors group text-right"
+                        className="w-full flex items-center justify-between p-2.5 hover:bg-[#f3f4f6] rounded-lg transition-colors group text-right"
                       >
                         <div className="flex items-center gap-3">
                           <img 
                             src={p.images[0]?.image_url} 
                             alt={p.name_ar} 
                             onError={handleImageError}
-                            className="w-10 h-10 object-cover rounded border border-gray-100 shrink-0" 
+                            className="w-10 h-10 object-cover rounded border border-[rgba(17,21,26,0.11)] shrink-0" 
                           />
                           <div>
-                            <p className="text-xs font-bold text-gray-900 group-hover:text-mall-900 line-clamp-1">
+                            <p className="text-xs font-bold text-[#04383f] group-hover:text-[#08606B] line-clamp-1">
                               {p.name_ar}
                             </p>
-                            <span className="text-[10px] text-gray-400">
+                            <span className="text-[10px] text-[#687280]">
                               كود: {p.sku}
                             </span>
                           </div>
                         </div>
-                        <span className="text-xs font-black text-mall-900">
+                        <span className="text-xs font-black text-[#04383f]">
                           {formatCurrencyEGP(p.price_egp)}
                         </span>
                       </button>
                     ))}
-                    <div className="p-2 border-t border-gray-100 bg-gray-50 text-center">
+                    <div className="p-2 border-t border-[rgba(17,21,26,0.11)]/60 bg-[#f3f4f6] text-center">
                       <button
                         type="button"
                         onClick={handleSearchSubmit}
-                        className="text-xs font-bold text-gold-600 hover:text-gold-700"
+                        className="text-xs font-bold text-[#08606B] hover:text-[#03292e]"
                       >
                         عرض جميع نتائج البحث عن "{searchQuery}" ←
                       </button>
                     </div>
                   </div>
                 ) : (
-                  <div className="p-6 text-center text-gray-500 text-xs">
+                  <div className="p-6 text-center text-[#687280] text-xs">
                     لم نعثر على نتائج مطابقة لـ "{searchQuery}"
                   </div>
                 )}
@@ -249,7 +249,7 @@ export const Header: React.FC = () => {
             {isAdmin && (
               <Link
                 to="/admin"
-                className="hidden md:inline-flex items-center gap-1.5 bg-gold-500/20 text-gold-400 hover:bg-gold-500/30 border border-gold-500/40 text-xs font-bold px-2.5 py-1.5 rounded-lg transition-colors"
+                className="hidden md:inline-flex items-center gap-1.5 bg-[rgba(8,96,107,0.08)] text-[#08606B] hover:bg-[rgba(8,96,107,0.22)] border border-[rgba(8,96,107,0.22)] text-xs font-bold px-2.5 py-1.5 rounded-lg transition-colors"
               >
                 <span>لوحة الإدارة</span>
                 <ExternalLink className="w-3.5 h-3.5" />
@@ -259,29 +259,29 @@ export const Header: React.FC = () => {
             {/* Wishlist */}
             <Link
               to="/wishlist"
-              className="flex flex-col items-center gap-0.5 text-gray-300 hover:text-white px-2 py-1 rounded-lg hover:bg-mall-800 transition-colors relative"
+              className="flex flex-col items-center gap-0.5 text-[#04383f] hover:text-[#08606B] px-2 py-1 rounded-lg hover:bg-[#f3f4f6] transition-colors relative"
               aria-label="المفضلة"
             >
               <div className="relative">
-                <Heart className="w-5 h-5 text-gray-300 hover:text-red-400 transition-colors" />
+                <Heart className="w-5 h-5 text-[#04383f] hover:text-red-500 transition-colors" />
                 {wishlistCount > 0 && (
                   <span className="absolute -top-1.5 -start-2 bg-red-500 text-white text-[10px] font-bold w-4 h-4 rounded-full flex items-center justify-center">
                     {wishlistCount}
                   </span>
                 )}
               </div>
-              <span className="text-[11px] hidden sm:block">المفضلة</span>
+              <span className="text-[11px] hidden sm:block font-medium">المفضلة</span>
             </Link>
 
             {/* Account */}
             {isAuthenticated ? (
               <Link
                 to="/account"
-                className="flex flex-col items-center gap-0.5 text-gray-300 hover:text-white px-2 py-1 rounded-lg hover:bg-mall-800 transition-colors"
+                className="flex flex-col items-center gap-0.5 text-[#04383f] hover:text-[#08606B] px-2 py-1 rounded-lg hover:bg-[#f3f4f6] transition-colors"
                 aria-label="حسابي"
               >
-                <User className="w-5 h-5 text-gold-400" />
-                <span className="text-[11px] hidden sm:block max-w-[80px] truncate text-gold-400 font-bold">
+                <User className="w-5 h-5 text-[#08606B]" />
+                <span className="text-[11px] hidden sm:block max-w-[80px] truncate text-[#08606B] font-bold">
                   {currentUser?.name?.split(' ')[0] || 'حسابي'}
                 </span>
               </Link>
@@ -289,7 +289,7 @@ export const Header: React.FC = () => {
               <button
                 type="button"
                 onClick={() => openAuthModal('login')}
-                className="flex flex-col items-center gap-0.5 text-gray-300 hover:text-white px-2 py-1 rounded-lg hover:bg-mall-800 transition-colors cursor-pointer"
+                className="flex flex-col items-center gap-0.5 text-[#04383f] hover:text-[#08606B] px-2 py-1 rounded-lg hover:bg-[#f3f4f6] transition-colors cursor-pointer"
                 aria-label="تسجيل الدخول"
               >
                 <User className="w-5 h-5" />
@@ -303,11 +303,11 @@ export const Header: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsCartDrawerOpen(true)}
-              className="flex flex-col items-center gap-0.5 bg-[#B89B5E] hover:bg-[#D4AF37] text-[#0A0A0B] font-bold px-3.5 py-1.5 rounded-lg transition-all shadow-sm relative cursor-pointer"
+              className="flex flex-col items-center gap-0.5 bg-[#08606B] hover:bg-[#03292e] text-white font-bold px-3.5 py-1.5 rounded-lg transition-all shadow-sm relative cursor-pointer"
               aria-label="عربة التسوق"
             >
               <div className="relative flex items-center gap-1.5">
-                <ShoppingCart className="w-5 h-5 text-[#0A0A0B]" />
+                <ShoppingCart className="w-5 h-5 text-white" />
                 <span className="text-xs font-black">{itemCount}</span>
               </div>
               <span className="text-[10px] hidden sm:block leading-none mt-0.5 font-bold">السلة</span>
@@ -316,21 +316,21 @@ export const Header: React.FC = () => {
         </div>
 
         {/* Mobile Search Bar (Below Main Bar on small screens) */}
-        <div ref={mobileSearchContainerRef} className="lg:hidden mt-2 pt-2 border-t border-[#1C2526] relative">
+        <div ref={mobileSearchContainerRef} className="lg:hidden mt-2 pt-2 border-t border-[rgba(17,21,26,0.11)] relative">
           <form onSubmit={handleSearchSubmit} className="relative w-full">
-            <div className="flex items-center w-full bg-white rounded-lg overflow-hidden shadow-xs border border-transparent focus-within:border-[#B89B5E]">
+            <div className="flex items-center w-full bg-[#f3f4f6] rounded-lg overflow-hidden shadow-xs border border-[rgba(17,21,26,0.11)] focus-within:border-[#08606B] focus-within:bg-white transition-all">
               <input
                 type="text"
                 value={searchQuery}
                 onChange={(e) => setSearchQuery(e.target.value)}
                 onFocus={() => searchQuery.length >= 2 && setIsSearching(true)}
                 placeholder="بتدور على إيه في مول المصطفى؟"
-                className="w-full py-2 px-3 text-xs text-gray-900 focus:outline-none"
+                className="w-full py-2 px-3 text-xs text-[#04383f] placeholder:text-[#687280] focus:outline-none bg-transparent"
                 dir="rtl"
               />
               <button
                 type="submit"
-                className="bg-[#B89B5E] text-[#0A0A0B] p-2 flex items-center justify-center cursor-pointer"
+                className="bg-[#08606B] hover:bg-[#03292e] text-white p-2 flex items-center justify-center cursor-pointer transition-colors"
                 aria-label="بحث"
               >
                 <Search className="w-4 h-4" />
@@ -340,10 +340,10 @@ export const Header: React.FC = () => {
 
           {/* Mobile Search Suggestions Dropdown */}
           {isSearching && (
-            <div className="absolute top-full start-0 w-full mt-1.5 bg-white rounded-xl shadow-2xl border border-gray-100 overflow-hidden z-50 text-right animate-fade-in max-h-80 overflow-y-auto">
+            <div className="absolute top-full start-0 w-full mt-1.5 bg-white rounded-xl shadow-2xl border border-[rgba(17,21,26,0.11)] overflow-hidden z-50 text-right animate-fade-in max-h-80 overflow-y-auto">
               {suggestions.length > 0 ? (
                 <div className="p-2">
-                  <div className="text-[11px] font-bold text-gray-400 px-3 py-1 border-b border-gray-100">
+                  <div className="text-[11px] font-bold text-[#687280] px-3 py-1 border-b border-[rgba(17,21,26,0.11)]/60">
                     منتجات مقترحة
                   </div>
                   {suggestions.map((p) => (
@@ -351,41 +351,41 @@ export const Header: React.FC = () => {
                       key={p.id}
                       type="button"
                       onClick={() => handleSelectSuggestion(p)}
-                      className="w-full flex items-center justify-between p-2 hover:bg-gold-50/60 rounded-lg transition-colors group text-right"
+                      className="w-full flex items-center justify-between p-2 hover:bg-[#f3f4f6] rounded-lg transition-colors group text-right"
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
                         <img 
                           src={p.images[0]?.image_url} 
                           alt={p.name_ar} 
                           onError={handleImageError}
-                          className="w-9 h-9 object-cover rounded border border-gray-100 shrink-0" 
+                          className="w-9 h-9 object-cover rounded border border-[rgba(17,21,26,0.11)] shrink-0" 
                         />
                         <div className="min-w-0 text-right">
-                          <p className="text-xs font-bold text-gray-900 group-hover:text-mall-900 truncate">
+                          <p className="text-xs font-bold text-[#04383f] group-hover:text-[#08606B] truncate">
                             {p.name_ar}
                           </p>
-                          <span className="text-[10px] text-gray-400 block">
+                          <span className="text-[10px] text-[#687280] block">
                             كود: {p.sku}
                           </span>
                         </div>
                       </div>
-                      <span className="text-xs font-black text-mall-900 shrink-0 me-1">
+                      <span className="text-xs font-black text-[#04383f] shrink-0 me-1">
                         {formatCurrencyEGP(p.price_egp)}
                       </span>
                     </button>
                   ))}
-                  <div className="p-2 border-t border-gray-100 bg-gray-50 text-center">
+                  <div className="p-2 border-t border-[rgba(17,21,26,0.11)]/60 bg-[#f3f4f6] text-center">
                     <button
                       type="button"
                       onClick={handleSearchSubmit}
-                      className="text-xs font-bold text-gold-600 hover:text-gold-700"
+                      className="text-xs font-bold text-[#08606B] hover:text-[#03292e]"
                     >
                       عرض جميع نتائج البحث عن "{searchQuery}" ←
                     </button>
                   </div>
                 </div>
               ) : (
-                <div className="p-4 text-center text-gray-500 text-xs">
+                <div className="p-4 text-center text-[#687280] text-xs">
                   لم نعثر على نتائج مطابقة لـ "{searchQuery}"
                 </div>
               )}
@@ -395,7 +395,7 @@ export const Header: React.FC = () => {
       </div>
 
       {/* Secondary Bar: Categories & Quick Links (Desktop) */}
-      <nav className="hidden lg:block bg-[#0A0A0B] border-t border-[#1C2526] text-sm relative">
+      <nav className="hidden lg:block bg-[#f3f4f6] border-t border-[rgba(17,21,26,0.11)] text-sm relative">
         <div className="max-w-7xl mx-auto px-4 flex items-center justify-between">
           <div className="flex items-center gap-2">
             {/* Mega Menu Toggle Button */}
@@ -403,10 +403,10 @@ export const Header: React.FC = () => {
               <button
                 type="button"
                 onClick={() => setIsMegaMenuOpen(!isMegaMenuOpen)}
-                className={`flex items-center gap-2 px-4 py-3 font-bold text-xs transition-colors rounded-t-lg cursor-pointer ${
+                className={`flex items-center gap-2 px-4 py-2.5 font-bold text-xs transition-colors rounded-t-lg cursor-pointer ${
                   isMegaMenuOpen 
-                    ? 'bg-[#B89B5E] text-[#0A0A0B]' 
-                    : 'bg-[#1C2526] hover:bg-[#253032] text-gray-200 border border-[#2B3537]'
+                    ? 'bg-[#08606B] text-white' 
+                    : 'bg-white hover:bg-[#EDE9DE] text-[#04383f] border border-[rgba(17,21,26,0.11)]'
                 }`}
               >
                 <Menu className="w-4 h-4" />
@@ -416,35 +416,35 @@ export const Header: React.FC = () => {
             </div>
 
             {/* Dynamic Navigation Links managed by Admin Navigation Manager */}
-            <div className="flex items-center gap-5 px-3 text-[15px] font-semibold text-gray-200">
+            <div className="flex items-center gap-5 px-3 text-[14px] font-semibold text-[#04383f]">
               {headerNavLinks.length > 0 ? (
                 headerNavLinks.map((item) => (
                   <Link 
                     key={item.id} 
                     to={item.url} 
-                    className="hover:text-[#D4AF37] transition-colors py-3 relative group"
+                    className="hover:text-[#08606B] transition-colors py-2.5 relative group"
                   >
                     <span>{item.label}</span>
-                    <span className="absolute bottom-0 inset-x-0 h-[2px] bg-[#B89B5E] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-right" />
+                    <span className="absolute bottom-0 inset-x-0 h-[2px] bg-[#08606B] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-right" />
                   </Link>
                 ))
               ) : (
                 <>
-                  <Link to="/category/home-and-cleaning" className="hover:text-[#D4AF37] transition-colors py-3 relative group">
+                  <Link to="/category/home-and-cleaning" className="hover:text-[#08606B] transition-colors py-2.5 relative group">
                     <span>المنزل والتنظيف</span>
-                    <span className="absolute bottom-0 inset-x-0 h-[2px] bg-[#B89B5E] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-right" />
+                    <span className="absolute bottom-0 inset-x-0 h-[2px] bg-[#08606B] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-right" />
                   </Link>
-                  <Link to="/category/electronics-and-mobile" className="hover:text-[#D4AF37] transition-colors py-3 relative group">
+                  <Link to="/category/electronics-and-mobile" className="hover:text-[#08606B] transition-colors py-2.5 relative group">
                     <span>الإلكترونيات والموبايل</span>
-                    <span className="absolute bottom-0 inset-x-0 h-[2px] bg-[#B89B5E] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-right" />
+                    <span className="absolute bottom-0 inset-x-0 h-[2px] bg-[#08606B] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-right" />
                   </Link>
-                  <Link to="/category/office-and-school" className="hover:text-[#D4AF37] transition-colors py-3 relative group">
+                  <Link to="/category/office-and-school" className="hover:text-[#08606B] transition-colors py-2.5 relative group">
                     <span>المكتبي والمدرسي</span>
-                    <span className="absolute bottom-0 inset-x-0 h-[2px] bg-[#B89B5E] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-right" />
+                    <span className="absolute bottom-0 inset-x-0 h-[2px] bg-[#08606B] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-right" />
                   </Link>
-                  <Link to="/category/toys-and-gifts" className="hover:text-[#D4AF37] transition-colors py-3 relative group">
+                  <Link to="/category/toys-and-gifts" className="hover:text-[#08606B] transition-colors py-2.5 relative group">
                     <span>الألعاب والهدايا</span>
-                    <span className="absolute bottom-0 inset-x-0 h-[2px] bg-[#B89B5E] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-right" />
+                    <span className="absolute bottom-0 inset-x-0 h-[2px] bg-[#08606B] scale-x-0 group-hover:scale-x-100 transition-transform duration-300 origin-right" />
                   </Link>
                 </>
               )}
@@ -455,8 +455,8 @@ export const Header: React.FC = () => {
           <div className="flex items-center gap-3">
             {/* Dedicated Print Center Highlight Badge */}
             <Link 
-              to="/print-center"
-              className="flex items-center gap-1.5 bg-[#1C2526] hover:bg-[#253032] border border-[#B89B5E]/50 text-[#B89B5E] hover:text-[#D4AF37] text-xs font-bold px-3.5 py-1.5 rounded-full transition-all shadow-xs"
+              to="/print-center" 
+              className="flex items-center gap-1.5 bg-white hover:bg-[rgba(8,96,107,0.08)] border border-[rgba(8,96,107,0.22)] text-[#08606B] text-xs font-bold px-3.5 py-1.5 rounded-full transition-all shadow-xs"
             >
               <Printer className="w-3.5 h-3.5" />
               <span>مركز الطباعة المتخصص</span>
@@ -464,8 +464,8 @@ export const Header: React.FC = () => {
 
             {/* Offers Page */}
             <Link 
-              to="/offers"
-              className="flex items-center gap-1 text-[#B89B5E] hover:text-[#D4AF37] text-xs font-bold py-2.5"
+              to="/offers" 
+              className="flex items-center gap-1 text-[#00D2D3] hover:text-[#D45D2B] text-xs font-bold py-2"
             >
               <Percent className="w-3.5 h-3.5" />
               <span>العروض والتخفيضات</span>
@@ -485,9 +485,9 @@ export const Header: React.FC = () => {
       {isMobileMenuOpen && (
         <div className="lg:hidden fixed inset-0 z-50 overflow-hidden">
           <div className="absolute inset-0 bg-black/60" onClick={() => setIsMobileMenuOpen(false)} />
-          <div className="fixed inset-y-0 start-0 max-w-xs w-full bg-white text-gray-900 shadow-2xl flex flex-col z-50">
+          <div className="fixed inset-y-0 start-0 max-w-xs w-full bg-white text-[#04383f] shadow-2xl flex flex-col z-50">
             {/* Drawer Header */}
-            <div className="p-4 bg-mall-900 text-white flex items-center justify-between">
+            <div className="p-4 bg-[#04383f] text-white flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <img src="/brand-logo-transparent.webp" alt="مول المصطفى" className="h-9 w-9 object-contain" />
                 <span className="font-cairo font-black text-sm text-white">مول المصطفى</span>
@@ -508,18 +508,18 @@ export const Header: React.FC = () => {
                 <Link
                   to="/account"
                   onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center justify-between p-3 bg-mall-50 rounded-xl border border-mall-100 text-mall-950 font-bold text-xs"
+                  className="flex items-center justify-between p-3 bg-[#f3f4f6] rounded-xl border border-[rgba(17,21,26,0.11)] text-[#04383f] font-bold text-xs"
                 >
                   <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-full bg-gold-500 text-mall-950 flex items-center justify-center font-black">
+                    <div className="w-8 h-8 rounded-full bg-[#08606B] text-white flex items-center justify-center font-black">
                       {currentUser?.name?.charAt(0) || 'م'}
                     </div>
                     <div>
                       <span className="block">{currentUser?.name}</span>
-                      <span className="text-[10px] text-gray-500 font-normal">{currentUser?.phone}</span>
+                      <span className="text-[10px] text-[#687280] font-normal">{currentUser?.phone}</span>
                     </div>
                   </div>
-                  <span className="text-[11px] text-gold-600">حسابي ←</span>
+                  <span className="text-[11px] text-[#08606B]">حسابي ←</span>
                 </Link>
               ) : (
                 <button
@@ -528,7 +528,7 @@ export const Header: React.FC = () => {
                     setIsMobileMenuOpen(false);
                     openAuthModal('login');
                   }}
-                  className="w-full flex items-center justify-between p-3 bg-gold-500 text-mall-950 rounded-xl font-bold text-xs shadow-xs"
+                  className="w-full flex items-center justify-between p-3 bg-[#08606B] text-white rounded-xl font-bold text-xs shadow-xs"
                 >
                   <div className="flex items-center gap-2">
                     <User className="w-4 h-4" />
@@ -541,38 +541,38 @@ export const Header: React.FC = () => {
               <Link
                 to="/print-center"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center justify-between p-3 bg-cyan-50 border border-cyan-200 rounded-xl text-cyan-950 font-bold text-xs"
+                className="flex items-center justify-between p-3 bg-[rgba(8,96,107,0.08)] border border-[rgba(8,96,107,0.22)] rounded-xl text-[#08606B] font-bold text-xs"
               >
                 <div className="flex items-center gap-2">
-                  <Printer className="w-4 h-4 text-cyan-700" />
+                  <Printer className="w-4 h-4 text-[#08606B]" />
                   <span>مركز الطباعة المتخصص</span>
                 </div>
-                <span className="text-[10px] bg-cyan-600 text-white px-2 py-0.5 rounded-full">خدمي</span>
+                <span className="text-[10px] bg-[#08606B] text-white px-2 py-0.5 rounded-full">خدمي</span>
               </Link>
 
               {/* Special Offers Button */}
               <Link
                 to="/offers"
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center justify-between p-3 bg-gold-50 border border-gold-200 rounded-xl text-mall-950 font-bold text-xs"
+                className="flex items-center justify-between p-3 bg-[#FDF2EB] border border-[#FBE4D7] rounded-xl text-[#04383f] font-bold text-xs"
               >
                 <div className="flex items-center gap-2">
-                  <Percent className="w-4 h-4 text-gold-600" />
+                  <Percent className="w-4 h-4 text-[#00D2D3]" />
                   <span>العروض والتخفيضات</span>
                 </div>
-                <span className="text-[10px] bg-gold-500 text-mall-950 px-2 py-0.5 rounded-full font-black">خصومات</span>
+                <span className="text-[10px] bg-[#00D2D3] text-white px-2 py-0.5 rounded-full font-black">خصومات</span>
               </Link>
 
               {/* Categories */}
               <div>
-                <h4 className="text-xs font-bold text-gray-400 uppercase mb-2">أقسام المتجر</h4>
+                <h4 className="text-xs font-bold text-[#687280] uppercase mb-2">أقسام المتجر</h4>
                 <div className="space-y-1">
                   {categories.map((cat) => (
-                    <div key={cat.id} className="border-b border-gray-100 pb-1">
+                    <div key={cat.id} className="border-b border-[rgba(17,21,26,0.11)]/60 pb-1">
                       <Link
                         to={cat.department_key === 'print_center' ? '/print-center' : `/category/${cat.slug}`}
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className="flex items-center justify-between py-2 text-xs font-bold text-gray-800 hover:text-mall-900"
+                        className="flex items-center justify-between py-2 text-xs font-bold text-[#04383f] hover:text-[#08606B]"
                       >
                         <span>{cat.name_ar}</span>
                       </Link>
@@ -583,7 +583,7 @@ export const Header: React.FC = () => {
                               key={sub.id}
                               to={`/category/${sub.slug}`}
                               onClick={() => setIsMobileMenuOpen(false)}
-                              className="block py-1 text-[11px] text-gray-600 hover:text-gold-600"
+                              className="block py-1 text-[11px] text-[#687280] hover:text-[#08606B]"
                             >
                               • {sub.name_ar}
                             </Link>
@@ -597,7 +597,7 @@ export const Header: React.FC = () => {
 
               {/* Dynamic Information & Navigation links */}
               <div className="pt-2">
-                <h4 className="text-xs font-bold text-gray-400 uppercase mb-2">روابط سريعة ومعلومات</h4>
+                <h4 className="text-xs font-bold text-[#687280] uppercase mb-2">روابط سريعة ومعلومات</h4>
                 <div className="space-y-2 text-xs">
                   {headerNavLinks.length > 0 ? (
                     headerNavLinks.map(item => (
@@ -605,17 +605,17 @@ export const Header: React.FC = () => {
                         key={item.id} 
                         to={item.url} 
                         onClick={() => setIsMobileMenuOpen(false)} 
-                        className="block text-gray-600 hover:text-mall-900 font-medium"
+                        className="block text-[#687280] hover:text-[#04383f] font-medium"
                       >
                         {item.label}
                       </Link>
                     ))
                   ) : (
                     <>
-                      <Link to="/page/about" onClick={() => setIsMobileMenuOpen(false)} className="block text-gray-600">عن مول المصطفى</Link>
-                      <Link to="/page/delivery" onClick={() => setIsMobileMenuOpen(false)} className="block text-gray-600">سياسة الشحن والتوصيل</Link>
-                      <Link to="/page/returns" onClick={() => setIsMobileMenuOpen(false)} className="block text-gray-600">سياسة الاسترجاع</Link>
-                      <Link to="/account" onClick={() => setIsMobileMenuOpen(false)} className="block text-gray-600">تتبع طلباتي</Link>
+                      <Link to="/page/about" onClick={() => setIsMobileMenuOpen(false)} className="block text-[#687280] hover:text-[#04383f]">عن مول المصطفى</Link>
+                      <Link to="/page/delivery" onClick={() => setIsMobileMenuOpen(false)} className="block text-[#687280] hover:text-[#04383f]">سياسة الشحن والتوصيل</Link>
+                      <Link to="/page/returns" onClick={() => setIsMobileMenuOpen(false)} className="block text-[#687280] hover:text-[#04383f]">سياسة الاسترجاع</Link>
+                      <Link to="/account" onClick={() => setIsMobileMenuOpen(false)} className="block text-[#687280] hover:text-[#04383f]">تتبع طلباتي</Link>
                     </>
                   )}
                 </div>
@@ -629,12 +629,12 @@ export const Header: React.FC = () => {
       {isLocationModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
           <div className="absolute inset-0 bg-black/60" onClick={() => setIsLocationModalOpen(false)} />
-          <div className="relative bg-white text-gray-900 rounded-2xl max-w-sm w-full p-6 shadow-2xl z-10 text-right animate-scale-up">
-            <h3 className="text-base font-black text-mall-900 mb-2 flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-gold-500" />
+          <div className="relative bg-white text-[#04383f] rounded-2xl max-w-sm w-full p-6 shadow-2xl z-10 text-right animate-scale-up">
+            <h3 className="text-base font-black text-[#04383f] mb-2 flex items-center gap-2">
+              <MapPin className="w-5 h-5 text-[#08606B]" />
               <span>اختر وجهة التوصيل</span>
             </h3>
-            <p className="text-xs text-gray-500 mb-4">
+            <p className="text-xs text-[#687280] mb-4">
               حدد محافظتك لتخصيص عروض الشحن وأوقات التسليم المتاحة.
             </p>
             <div className="space-y-2 mb-6 max-h-60 overflow-y-auto">
@@ -655,8 +655,8 @@ export const Header: React.FC = () => {
                   }}
                   className={`w-full text-right p-3 rounded-lg text-xs font-bold transition-colors ${
                     selectedGovernorate === gov 
-                      ? 'bg-mall-900 text-white' 
-                      : 'bg-gray-50 hover:bg-gold-50 text-gray-800'
+                      ? 'bg-[#04383f] text-white' 
+                      : 'bg-[#f3f4f6] hover:bg-[#EDE9DE] text-[#04383f]'
                   }`}
                 >
                   {gov}
@@ -666,7 +666,7 @@ export const Header: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsLocationModalOpen(false)}
-              className="w-full py-2 bg-gray-100 hover:bg-gray-200 text-gray-700 text-xs font-bold rounded-lg transition-colors"
+              className="w-full py-2 bg-gray-100 hover:bg-gray-200 text-[#04383f] text-xs font-bold rounded-lg transition-colors"
             >
               إلغاء
             </button>

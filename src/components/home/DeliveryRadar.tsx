@@ -63,18 +63,18 @@ export const DeliveryRadar: React.FC = () => {
   const format2Digits = (num: number) => num.toString().padStart(2, '0');
 
   return (
-    <section className="bg-white rounded-xl p-6 sm:p-10 my-8 border border-[#E8E4DC] shadow-card relative overflow-hidden text-right">
+    <section className="bg-white rounded-3xl p-6 sm:p-10 my-8 border border-[rgba(17,21,26,0.11)] shadow-editorial relative overflow-hidden text-right">
       {/* Top Banner with Cutoff Countdown */}
-      <div className="bg-[#0A0A0B] rounded-xl p-4 sm:p-6 text-white mb-8 flex flex-col md:flex-row items-center justify-between gap-4 border border-[#1C2526]">
+      <div className="bg-[#04383f] rounded-2xl p-4 sm:p-6 text-white mb-8 flex flex-col md:flex-row items-center justify-between gap-4 border border-[#001E27]">
         
         <div className="flex items-center gap-3">
-          <div className="w-12 h-12 rounded-lg bg-[#B89B5E]/20 border border-[#B89B5E]/40 flex items-center justify-center text-[#B89B5E] shrink-0">
+          <div className="w-12 h-12 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-[#00D2D3] shrink-0">
             <Zap className="w-6 h-6 animate-pulse" />
           </div>
           <div>
             <div className="flex items-center gap-2">
-              <span className="inline-block w-2.5 h-2.5 rounded-full bg-[#0D7377] animate-ping" />
-              <span className="text-xs font-bold text-[#0D7377]">مستودعاتنا تعمل الآن بكامل طاقتها</span>
+              <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
+              <span className="text-xs font-bold text-emerald-300">مستودعاتنا تعمل الآن بكامل طاقتها</span>
             </div>
             <h3 className="text-base sm:text-lg font-black text-white mt-0.5">
               رادار سرعة الشحن والتوصيل الفوري لمحافظات مصر
@@ -83,12 +83,12 @@ export const DeliveryRadar: React.FC = () => {
         </div>
 
         {/* Live Timer Pill */}
-        <div className="bg-[#1C2526] border border-[#2B3537] px-4 py-2.5 rounded-lg flex items-center gap-3">
+        <div className="bg-[#001E27] border border-[#003746] px-4 py-2.5 rounded-xl flex items-center gap-3">
           <div className="text-right">
-            <span className="text-[11px] text-gray-400 block font-medium">اطلب الآن ليصلك طلبك غداً</span>
+            <span className="text-[11px] text-gray-300 block font-medium">اطلب الآن ليصلك طلبك غداً</span>
             <span className="text-xs text-white font-bold">متبقي قبل إغلاق شحنات اليوم:</span>
           </div>
-          <div className="flex items-center gap-1 font-mono text-base sm:text-lg font-black text-[#B89B5E] bg-[#0A0A0B] px-3 py-1 rounded border border-[#2B3537]" dir="ltr">
+          <div className="flex items-center gap-1 font-mono text-base sm:text-lg font-black text-[#00D2D3] bg-[#04383f] px-3 py-1 rounded-lg border border-[#003746]" dir="ltr">
             <span>{format2Digits(timeLeft.hours)}</span>:
             <span>{format2Digits(timeLeft.minutes)}</span>:
             <span>{format2Digits(timeLeft.seconds)}</span>
@@ -103,14 +103,14 @@ export const DeliveryRadar: React.FC = () => {
         {/* Governorate Selector (7 cols) */}
         <div className="lg:col-span-7 space-y-6">
           <div>
-            <div className="flex items-center gap-2 text-[#B89B5E] text-xs font-bold mb-2">
+            <div className="flex items-center gap-2 text-[#08606B] text-xs font-bold mb-2">
               <MapPin className="w-4 h-4" />
               <span>اختر محافظتك للتحقق من سرعة وصول الطلب</span>
             </div>
-            <h4 className="text-xl sm:text-2xl font-black text-[#1A1A1A]">
+            <h4 className="text-xl sm:text-2xl font-black text-[#04383f]">
               توصيل يغطي جميع المحافظات والقرى المصرية
             </h4>
-            <p className="text-xs sm:text-sm text-gray-500 mt-1">
+            <p className="text-xs sm:text-sm text-[#687280] mt-1">
               نوفر خدمة الشحن السريع بالتعاون مع كبرى شركات الشحن وأسطول مول المصطفى المعتمد.
             </p>
           </div>
@@ -124,8 +124,8 @@ export const DeliveryRadar: React.FC = () => {
                 onClick={() => setSelectedGovId(gov.id)}
                 className={`p-3 rounded-xl text-xs sm:text-sm font-bold text-center transition-all cursor-pointer ${
                   selectedGovId === gov.id
-                    ? 'bg-slate-900 text-white shadow-md ring-2 ring-gold-400'
-                    : 'bg-slate-50 text-slate-700 hover:bg-slate-100 border border-slate-200'
+                    ? 'bg-[#04383f] text-white shadow-md ring-2 ring-[#08606B]'
+                    : 'bg-[#f8fafb] text-[#04383f] hover:bg-[#EDE9DE] border border-[rgba(17,21,26,0.11)]'
                 }`}
               >
                 {gov.name_ar.split(' ')[0]}
@@ -134,9 +134,9 @@ export const DeliveryRadar: React.FC = () => {
           </div>
 
           {/* Governorate Dynamic Details Card */}
-          <div className="bg-slate-50 border border-slate-200/80 rounded-2xl p-5 space-y-3.5">
-            <div className="flex justify-between items-center pb-3 border-b border-slate-200">
-              <span className="font-bold text-slate-900 text-base">{currentGov.name_ar}</span>
+          <div className="bg-[#f8fafb] border border-[rgba(17,21,26,0.11)] rounded-2xl p-5 space-y-3.5">
+            <div className="flex justify-between items-center pb-3 border-b border-[rgba(17,21,26,0.11)]">
+              <span className="font-bold text-[#04383f] text-base">{currentGov.name_ar}</span>
               {currentGov.expressAvailable && (
                 <span className="text-[11px] bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-1 rounded-full font-bold">
                   ⚡ شحن فوري متاح
@@ -145,64 +145,64 @@ export const DeliveryRadar: React.FC = () => {
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
-              <div className="flex items-center gap-2.5 bg-white p-3 rounded-xl border border-slate-200">
-                <Clock className="w-5 h-5 text-gold-600 shrink-0" />
+              <div className="flex items-center gap-2.5 bg-white p-3 rounded-xl border border-[rgba(17,21,26,0.11)]">
+                <Clock className="w-5 h-5 text-[#08606B] shrink-0" />
                 <div>
-                  <span className="text-slate-400 block font-medium">المدة المتوقعة:</span>
-                  <span className="font-black text-slate-900 text-sm">{currentGov.deliveryTime}</span>
+                  <span className="text-[#687280] block font-medium">المدة المتوقعة:</span>
+                  <span className="font-black text-[#04383f] text-sm">{currentGov.deliveryTime}</span>
                 </div>
               </div>
 
-              <div className="flex items-center gap-2.5 bg-white p-3 rounded-xl border border-slate-200">
-                <Truck className="w-5 h-5 text-emerald-700 shrink-0" />
+              <div className="flex items-center gap-2.5 bg-white p-3 rounded-xl border border-[rgba(17,21,26,0.11)]">
+                <Truck className="w-5 h-5 text-[#08606B] shrink-0" />
                 <div>
-                  <span className="text-slate-400 block font-medium">تكلفة الشحن:</span>
-                  <span className="font-black text-slate-900 text-sm">{currentGov.standardCost}</span>
+                  <span className="text-[#687280] block font-medium">تكلفة الشحن:</span>
+                  <span className="font-black text-[#04383f] text-sm">{currentGov.standardCost}</span>
                 </div>
               </div>
             </div>
 
-            <p className="text-xs text-slate-500 pt-1">
+            <p className="text-xs text-[#687280] pt-1">
               💡 {currentGov.notes}
             </p>
           </div>
 
           {/* Guarantee Badges */}
           <div className="grid grid-cols-3 gap-3 text-center text-xs">
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80">
-              <ShieldCheck className="w-5 h-5 text-emerald-700 mx-auto mb-1" />
-              <span className="font-bold text-slate-900 block">معاينة قبل الاستلام</span>
-              <span className="text-[10px] text-slate-500">حق فتح الشحنة والفحص</span>
+            <div className="p-3 bg-[#f8fafb] rounded-xl border border-[rgba(17,21,26,0.11)]">
+              <ShieldCheck className="w-5 h-5 text-[#08606B] mx-auto mb-1" />
+              <span className="font-bold text-[#04383f] block">معاينة قبل الاستلام</span>
+              <span className="text-[10px] text-[#687280]">حق فتح الشحنة والفحص</span>
             </div>
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80">
-              <PackageCheck className="w-5 h-5 text-gold-600 mx-auto mb-1" />
-              <span className="font-bold text-slate-900 block">شحن مجاني فوق 1000ج</span>
-              <span className="text-[10px] text-slate-500">لكافة المنتجات والأقسام</span>
+            <div className="p-3 bg-[#f8fafb] rounded-xl border border-[rgba(17,21,26,0.11)]">
+              <PackageCheck className="w-5 h-5 text-[#00D2D3] mx-auto mb-1" />
+              <span className="font-bold text-[#04383f] block">شحن مجاني فوق 1000ج</span>
+              <span className="text-[10px] text-[#687280]">لكافة المنتجات والأقسام</span>
             </div>
-            <div className="p-3 bg-slate-50 rounded-xl border border-slate-200/80">
-              <Truck className="w-5 h-5 text-slate-900 mx-auto mb-1" />
-              <span className="font-bold text-slate-900 block">تغليف آمن ومحكم</span>
-              <span className="text-[10px] text-slate-500">حماية ضد الكسر أو التلف</span>
+            <div className="p-3 bg-[#f8fafb] rounded-xl border border-[rgba(17,21,26,0.11)]">
+              <Truck className="w-5 h-5 text-[#04383f] mx-auto mb-1" />
+              <span className="font-bold text-[#04383f] block">تغليف آمن ومحكم</span>
+              <span className="text-[10px] text-[#687280]">حماية ضد الكسر أو التلف</span>
             </div>
           </div>
         </div>
 
         {/* Live Tracking Tool (5 cols) */}
-        <div className="lg:col-span-5 bg-[#0A0A0B] text-white p-6 sm:p-8 rounded-xl border border-[#1C2526] shadow-xl">
-          <div className="w-12 h-12 rounded-lg bg-[#B89B5E]/20 border border-[#B89B5E]/40 flex items-center justify-center text-[#B89B5E] mb-4">
+        <div className="lg:col-span-5 bg-[#04383f] text-white p-6 sm:p-8 rounded-2xl border border-[#001E27] shadow-xl">
+          <div className="w-12 h-12 rounded-xl bg-white/10 border border-white/20 flex items-center justify-center text-[#00D2D3] mb-4">
             <Search className="w-6 h-6" />
           </div>
 
           <h4 className="text-xl font-black text-white mb-2">
             تتبع شحنتك لحظة بلحظة
           </h4>
-          <p className="text-xs text-gray-400 mb-6 leading-relaxed">
+          <p className="text-xs text-gray-300 mb-6 leading-relaxed">
             أدخل رقم طلبك أو كود التتبع الذي وصلك في رسالة تأكيد الشراء لمعرفة موقع شحنتك وموعد وصولها بالضبط.
           </p>
 
           <form onSubmit={handleTrackSubmit} className="space-y-4">
             <div>
-              <label className="block text-xs font-bold text-gray-300 mb-2">
+              <label className="block text-xs font-bold text-gray-200 mb-2">
                 رقم الطلب أو كود التتبع
               </label>
               <input
@@ -210,13 +210,13 @@ export const DeliveryRadar: React.FC = () => {
                 value={trackNumber}
                 onChange={(e) => setTrackNumber(e.target.value)}
                 placeholder="مثال: ORD-1002 أو 2026-X"
-                className="w-full bg-[#1C2526] border border-[#2B3537] rounded-lg px-4 py-3 text-sm text-white focus:outline-none focus:border-[#B89B5E] font-mono"
+                className="w-full bg-[#001E27] border border-[#003746] rounded-xl px-4 py-3 text-sm text-white focus:outline-none focus:border-[#08606B] font-mono"
               />
             </div>
 
             <button
               type="submit"
-              className="w-full bg-[#B89B5E] hover:bg-[#D4AF37] text-[#0A0A0B] py-3.5 rounded-lg font-black text-sm flex items-center justify-center gap-2 shadow-md cursor-pointer transition-all active:scale-98"
+              className="w-full bg-[#08606B] hover:bg-[#03292e] text-white py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-md cursor-pointer transition-all active:scale-98"
             >
               <span>استعلام عن حالة الشحنة</span>
               <ArrowLeft className="w-4 h-4 rtl:rotate-0 ltr:rotate-180" />
@@ -224,13 +224,13 @@ export const DeliveryRadar: React.FC = () => {
           </form>
 
           {/* Quick status notice */}
-          <div className="mt-6 pt-5 border-t border-[#1C2526] text-xs text-gray-400 space-y-2">
+          <div className="mt-6 pt-5 border-t border-[#003746] text-xs text-gray-300 space-y-2">
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#0D7377]" />
+              <span className="w-2 h-2 rounded-full bg-emerald-400" />
               <span>إشعار تلقائي برسالة SMS فور تسليم الشحنة للمندوب</span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="w-2 h-2 rounded-full bg-[#B89B5E]" />
+              <span className="w-2 h-2 rounded-full bg-[#00D2D3]" />
               <span>إمكانية تعديل موعد الاستلام أو عنوان التوصيل بسهولة</span>
             </div>
           </div>

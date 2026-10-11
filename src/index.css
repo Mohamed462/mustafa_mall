@@ -3,11 +3,29 @@
 @tailwind utilities;
 
 :root {
-  --color-primary: #0F172A;
-  --color-accent: #C5A880;
-  --color-accent-hover: #D4AF37;
-  --color-canvas: #FAFAFB;
-  --color-emerald: #047857;
+  /* FullMark & Kairo UI Design Tokens */
+  --fm-teal: #08606B;
+  --fm-teal-dark: #04383f;
+  --fm-teal-light: #0d8391;
+  --fm-teal-faint: rgba(8, 96, 107, 0.08);
+  --fm-cyan: #00D2D3;
+  --fm-cyan-dim: rgba(0, 210, 211, 0.16);
+
+  --cf-bg: #f3f4f6;
+  --cf-card: #ffffff;
+  --cf-card-2: #f8fafb;
+  --cf-card-dark: #1e262c;
+  --cf-ink: #11151a;
+  --cf-ink-dim: rgba(17, 21, 26, 0.65);
+  --cf-text-2: #1b2026;
+  --cf-muted: #5f6870;
+  --cf-faint: #8c959e;
+  --cf-border: rgba(17, 21, 26, 0.11);
+  --cf-border-2: rgba(8, 96, 107, 0.22);
+  --cf-radius: 12px;
+
+  --color-primary: #08606B;
+  --color-accent: #00D2D3;
 }
 
 /* RTL Global Adjustments */
@@ -15,14 +33,14 @@ html {
   direction: rtl;
   text-align: right;
   scroll-behavior: smooth;
-  background-color: #FAFAFB;
+  background-color: var(--cf-bg);
 }
 
 body {
   margin: 0;
-  font-family: 'IBM Plex Sans Arabic', 'Tajawal', 'Cairo', system-ui, -apple-system, sans-serif;
-  background-color: #FAFAFB;
-  color: #0F172A;
+  font-family: 'Alexandria', system-ui, -apple-system, sans-serif;
+  background-color: var(--cf-bg);
+  color: var(--cf-ink);
   overflow-x: hidden;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -30,27 +48,35 @@ body {
 
 /* Selection Color */
 ::selection {
-  background-color: #B89B5E;
-  color: #FFFFFF;
+  background-color: var(--fm-cyan);
+  color: var(--fm-teal-dark);
 }
 
-/* Custom Scrollbar - Sleek Luxury Track */
+/* Drafting Grid Background (Architectural Texture from FullMark) */
+.drafting-grid {
+  background-size: 32px 32px;
+  background-image: 
+    linear-gradient(to right, rgba(17, 21, 26, 0.03) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(17, 21, 26, 0.03) 1px, transparent 1px);
+}
+
+/* Custom Scrollbar */
 ::-webkit-scrollbar {
   width: 7px;
   height: 7px;
 }
 
 ::-webkit-scrollbar-track {
-  background: #EFECE6;
+  background: #e5e7eb;
 }
 
 ::-webkit-scrollbar-thumb {
-  background: #C4BCAC;
+  background: #9ca3af;
   border-radius: 4px;
 }
 
 ::-webkit-scrollbar-thumb:hover {
-  background: #B89B5E;
+  background: #08606B;
 }
 
 /* Hide scrollbar for horizontal product ribbons */
@@ -62,27 +88,20 @@ body {
   scrollbar-width: none;
 }
 
-/* Image Transitions */
-img {
-  image-rendering: auto;
-}
-
 /* Keyboard Accessibility Focus */
 a:focus-visible, button:focus-visible, input:focus-visible, select:focus-visible, textarea:focus-visible {
-  outline: 2px solid #B89B5E;
+  outline: 2px solid #00D2D3;
   outline-offset: 2px;
 }
 
-/* Luxury Carousel Segmented Progress Animation */
-@keyframes progress {
-  from {
-    width: 0%;
-  }
-  to {
-    width: 100%;
-  }
-}
-
-.animate-progress {
-  animation: progress linear forwards;
+/* Kairo UI Noise Texture for Buttons & Surfaces */
+.texture-noise::after {
+  content: "";
+  position: absolute;
+  inset: 0;
+  pointer-events: none;
+  border-radius: inherit;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.8' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
+  opacity: 0.35;
+  mix-blend-mode: overlay;
 }

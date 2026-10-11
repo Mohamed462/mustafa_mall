@@ -55,14 +55,14 @@ export const CustomerReviewsSection: React.FC = () => {
     <section className="max-w-7xl mx-auto px-4 py-8">
       {/* Header */}
       <div className="text-center max-w-2xl mx-auto mb-8">
-        <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#B89B5E] mb-2">
+        <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#005C61] mb-2 bg-[#E6F2F3] px-3 py-1 rounded-full">
           <ThumbsUp className="w-3.5 h-3.5" />
           <span>تجارب حقيقية موثقة</span>
         </div>
-        <h2 className="text-2xl sm:text-3xl font-black text-[#1A1A1A] tracking-tight">
+        <h2 className="text-2xl sm:text-3xl font-black text-[#002D3A] tracking-tight">
           ماذا يقول عملاؤنا عن مول المصطفى؟
         </h2>
-        <p className="text-xs sm:text-sm text-gray-500 mt-1">
+        <p className="text-xs sm:text-sm text-[#687280] mt-1">
           أكثر من 50,000 عميل سعيد في 27 محافظة مصرية يثقون في جودة منتجاتنا وسرعة خدماتنا
         </p>
       </div>
@@ -72,39 +72,39 @@ export const CustomerReviewsSection: React.FC = () => {
         {REVIEWS.map((rev) => (
           <div
             key={rev.id}
-            className="bg-white rounded-xl p-5 border border-[#E8E4DC] shadow-card hover:shadow-card-hover transition-all flex flex-col justify-between text-right"
+            className="bg-white rounded-2xl p-5 border border-[#DEDAD0] shadow-editorial hover:shadow-editorial-hover transition-all flex flex-col justify-between text-right"
           >
             <div>
               {/* Top Row: Stars + Quote Icon */}
               <div className="flex items-center justify-between mb-3">
-                <div className="flex items-center gap-1 text-[#B89B5E]">
+                <div className="flex items-center gap-1 text-[#E76F3C]">
                   {[...Array(rev.rating)].map((_, i) => (
-                    <Star key={i} className="w-3.5 h-3.5 fill-[#B89B5E] text-[#B89B5E]" />
+                    <Star key={i} className="w-3.5 h-3.5 fill-[#E76F3C] text-[#E76F3C]" />
                   ))}
                 </div>
                 <Quote className="w-5 h-5 text-gray-200" />
               </div>
 
               {/* Review Text */}
-              <p className="text-xs text-gray-700 leading-relaxed line-clamp-5 mb-4">
+              <p className="text-xs text-[#002D3A]/85 leading-relaxed line-clamp-5 mb-4">
                 "{rev.content}"
               </p>
             </div>
 
             {/* Author Footer */}
-            <div className="pt-3 border-t border-[#E8E4DC]">
+            <div className="pt-3 border-t border-[#DEDAD0]">
               <div className="flex items-center justify-between mb-1">
-                <span className="font-bold text-xs text-[#1A1A1A]">{rev.author}</span>
-                <span className="text-[10px] text-gray-400">{rev.date}</span>
+                <span className="font-bold text-xs text-[#002D3A]">{rev.author}</span>
+                <span className="text-[10px] text-[#687280]">{rev.date}</span>
               </div>
               <div className="flex items-center justify-between text-[10px]">
-                <span className="text-gray-500">{rev.city}</span>
-                <span className="inline-flex items-center gap-1 text-[#0D7377] font-bold">
+                <span className="text-[#687280]">{rev.city}</span>
+                <span className="inline-flex items-center gap-1 text-[#005C61] font-bold">
                   <CheckCircle className="w-3 h-3" />
                   <span>مشتري موثق</span>
                 </span>
               </div>
-              <div className="text-[10px] text-gray-400 mt-1 truncate">
+              <div className="text-[10px] text-[#687280] mt-1 truncate">
                 تم شراء: {rev.product}
               </div>
             </div>

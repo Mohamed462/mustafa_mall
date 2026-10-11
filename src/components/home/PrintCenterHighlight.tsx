@@ -1,55 +1,72 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
 import { Printer, FileText, BookOpen, Layers, CheckCircle2, ArrowLeft } from 'lucide-react';
+import { TextureButton } from '../common/TextureButton';
 
 export const PrintCenterHighlight: React.FC = () => {
   return (
-    <section className="max-w-7xl mx-auto px-4 py-8">
-      <div className="relative rounded-xl overflow-hidden bg-gradient-to-br from-[#0A0A0B] via-[#14181B] to-[#1C2526] text-white p-6 sm:p-10 border border-[#B89B5E]/30 shadow-xl">
+    <section className="max-w-7xl mx-auto px-4 py-8 font-arabic">
+      <div className="relative rounded-2xl sm:rounded-3xl overflow-hidden bg-gradient-to-br from-[#04383f] via-[#064850] to-[#08606B] text-white p-6 sm:p-10 border border-[#08606B]/40 shadow-floating">
+        
+        {/* FullMark Terminal / Blueprint SLA Header */}
+        <div className="flex items-center justify-between pb-4 mb-6 border-b border-white/10 text-xs">
+          <div className="flex items-center gap-2">
+            <span className="w-2.5 h-2.5 rounded-full bg-red-400"></span>
+            <span className="w-2.5 h-2.5 rounded-full bg-amber-400"></span>
+            <span className="w-2.5 h-2.5 rounded-full bg-emerald-400"></span>
+            <span className="font-mono text-white/80 font-semibold tracking-wider text-[11px] ms-2">
+              CENTRAL PRINTING & LUXURY FINISHING // 2026
+            </span>
+          </div>
+          <div className="flex items-center gap-1.5 bg-[#00D2D3]/15 text-[#00D2D3] border border-[#00D2D3]/30 px-3 py-1 rounded-full font-bold text-[10px]">
+            <span className="w-1.5 h-1.5 rounded-full bg-[#00D2D3] animate-pulse"></span>
+            <span>ضمان جودة معتمد</span>
+          </div>
+        </div>
+
         <div className="grid grid-cols-1 lg:grid-cols-12 gap-8 items-center">
           
           {/* Main Info */}
           <div className="lg:col-span-7 space-y-4 text-right">
-            <div className="inline-flex items-center gap-2 bg-[#B89B5E]/15 border border-[#B89B5E]/40 text-[#B89B5E] px-3.5 py-1 rounded-full text-xs font-bold">
+            <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-[#00D2D3] px-3.5 py-1 rounded-full text-xs font-bold">
               <Printer className="w-3.5 h-3.5" />
-              <span>مركز الطباعة والتصوير الرقمي المعتمد</span>
+              <span>الركن التخصصي للطباعة الرقمية والتجليد المذهب</span>
             </div>
 
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white leading-tight">
-              خدمات طباعة متكاملة للطلاب والباحثين والمؤسسات
+              خدمات طباعة متكاملة للطلاب، الباحثين، والمؤسسات
             </h2>
 
-            <p className="text-xs sm:text-sm text-gray-300 leading-relaxed max-w-xl">
-              نوفر خطوط إنتاج ديجيتال متطورة: طباعة وتجليد الرسائل والأبحاث الجامعية، كروت العمل الفاخرة، البانرات الإعلانية، والاستيكرات المقصوصة بأعلى دقة ألوان CMYK مع تسليم سريع وحساب فوري للتكلفة.
+            <p className="text-xs sm:text-sm text-gray-200 leading-relaxed max-w-xl">
+              نوفر أحدث خطوط الإنتاج الرقمية: طباعة وتجليد الرسائل الجامعية هارد كفر مذهب، كروت العمل الفاخرة، البانرات الإعلانية، واللوحات الهندسية بدقة ليزر مع تسليم فوري وحساب أوتوماتيكي للتكلفة.
             </p>
 
             {/* Checklist */}
-            <div className="grid grid-cols-2 gap-3 pt-2 text-xs text-gray-200">
+            <div className="grid grid-cols-2 gap-3 pt-2 text-xs text-gray-100">
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-[#0D7377] shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-[#00D2D3] shrink-0" />
                 <span>أعلى دقة وضوح ليزر 1200 DPI</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-[#0D7377] shrink-0" />
-                <span>تجليد كعب حراري وبصمة ذهبية</span>
+                <CheckCircle2 className="w-4 h-4 text-[#00D2D3] shrink-0" />
+                <span>تجليد كعب حراري وبصمة ذهبية فاخرة</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-[#0D7377] shrink-0" />
-                <span>سرية وأمان تام لكافة المستندات</span>
+                <CheckCircle2 className="w-4 h-4 text-[#00D2D3] shrink-0" />
+                <span>سرية وأمان تام لكافة المستندات والأبحاث</span>
               </div>
               <div className="flex items-center gap-2">
-                <CheckCircle2 className="w-4 h-4 text-[#0D7377] shrink-0" />
+                <CheckCircle2 className="w-4 h-4 text-[#00D2D3] shrink-0" />
                 <span>حساب تكلفة فوري ورفع الملفات أونلاين</span>
               </div>
             </div>
 
             <div className="pt-4 flex flex-wrap gap-3">
-              <Link
-                to="/print-center"
-                className="inline-flex items-center gap-2 bg-[#B89B5E] hover:bg-[#D4AF37] text-[#0A0A0B] font-bold text-xs sm:text-sm px-6 py-3 rounded-lg shadow-md transition-all hover:scale-102"
-              >
-                <span>احسب تكلفة طلبك واطلب الطباعة فوراً</span>
-                <ArrowLeft className="w-4 h-4 rtl:rotate-0 ltr:rotate-180" />
+              <Link to="/print-center">
+                <TextureButton variant="accent" size="lg">
+                  <span>احسب تكلفة طلبك واطلب الطباعة فوراً</span>
+                  <ArrowLeft className="w-4 h-4 rtl:rotate-0 ltr:rotate-180" />
+                </TextureButton>
               </Link>
             </div>
           </div>
@@ -58,38 +75,38 @@ export const PrintCenterHighlight: React.FC = () => {
           <div className="lg:col-span-5 grid grid-cols-2 gap-3 text-right">
             <Link
               to="/print-center"
-              className="p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all group"
+              className="p-4 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 transition-all group hover:border-[#00D2D3]/50"
             >
-              <FileText className="w-6 h-6 text-[#B89B5E] mb-2 group-hover:scale-110 transition-transform" />
+              <FileText className="w-6 h-6 text-[#00D2D3] mb-2 group-hover:scale-110 transition-transform" />
               <h4 className="text-xs font-bold text-white mb-1">طباعة المستندات</h4>
-              <p className="text-[10px] text-gray-400">أبيض وأسود وألوان A4/A3 بأعلى نقاء</p>
+              <p className="text-[10px] text-gray-300">أبيض وأسود وألوان A4/A3 بأعلى نقاء ليزر</p>
             </Link>
 
             <Link
               to="/print-center"
-              className="p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all group"
+              className="p-4 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 transition-all group hover:border-[#00D2D3]/50"
             >
-              <BookOpen className="w-6 h-6 text-[#D4AF37] mb-2 group-hover:scale-110 transition-transform" />
+              <BookOpen className="w-6 h-6 text-[#00D2D3] mb-2 group-hover:scale-110 transition-transform" />
               <h4 className="text-xs font-bold text-white mb-1">أبحاث ورسائل ماجستير</h4>
-              <p className="text-[10px] text-gray-400">تجليد فاخر وغلاف كرتوناج مقوى</p>
+              <p className="text-[10px] text-gray-300">تجليد هارد كفر فاخر وغلاف كرتوناج مذهب</p>
             </Link>
 
             <Link
               to="/print-center"
-              className="p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all group"
+              className="p-4 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 transition-all group hover:border-[#00D2D3]/50"
             >
-              <Layers className="w-6 h-6 text-[#B89B5E] mb-2 group-hover:scale-110 transition-transform" />
+              <Layers className="w-6 h-6 text-[#00D2D3] mb-2 group-hover:scale-110 transition-transform" />
               <h4 className="text-xs font-bold text-white mb-1">كروت شخصية وفلايرات</h4>
-              <p className="text-[10px] text-gray-400">كوشيه 350 جم وسلوفان مطفي فاخر</p>
+              <p className="text-[10px] text-gray-300">كوشيه 350 جم وسلوفان مطفي وبصمة بارزة</p>
             </Link>
 
             <Link
               to="/print-center"
-              className="p-4 rounded-xl bg-white/5 hover:bg-white/10 border border-white/10 transition-all group"
+              className="p-4 rounded-xl bg-white/10 hover:bg-white/15 border border-white/15 transition-all group hover:border-[#00D2D3]/50"
             >
-              <Printer className="w-6 h-6 text-[#0D7377] mb-2 group-hover:scale-110 transition-transform" />
-              <h4 className="text-xs font-bold text-white mb-1">بانرات ولافتات فلكس</h4>
-              <p className="text-[10px] text-gray-400">مقاومة للعوامل الجوية وتسليم فوري</p>
+              <Printer className="w-6 h-6 text-[#00D2D3] mb-2 group-hover:scale-110 transition-transform" />
+              <h4 className="text-xs font-bold text-white mb-1">بانرات ولوحات هندسية</h4>
+              <p className="text-[10px] text-gray-300">طباعة بلوتر عالية الدقة ومقاومة للعوامل الجوية</p>
             </Link>
           </div>
 

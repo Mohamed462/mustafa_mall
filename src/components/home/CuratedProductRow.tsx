@@ -24,20 +24,20 @@ export const CuratedProductRow: React.FC<CuratedProductRowProps> = ({
   return (
     <section className="max-w-7xl mx-auto px-4 py-8">
       {/* Shelf Header */}
-      <div className="flex items-end justify-between mb-6 pb-2.5 border-b border-[#E8E4DC]">
+      <div className="flex items-end justify-between mb-6 pb-2.5 border-b border-[rgba(17,21,26,0.11)]">
         <div>
           <div className="flex items-center gap-2.5">
-            <h2 className="text-xl sm:text-2xl font-black text-[#1A1A1A]">
+            <h2 className="text-xl sm:text-2xl font-black text-[#04383f]">
               {title}
             </h2>
             {badge && (
-              <span className="text-[10px] bg-[#0D7377]/10 text-[#0D7377] font-bold px-2.5 py-0.5 rounded border border-[#0D7377]/20">
+              <span className="text-[10px] bg-[rgba(8,96,107,0.08)] text-[#08606B] font-bold px-2.5 py-0.5 rounded-full border border-[rgba(8,96,107,0.22)]">
                 {badge}
               </span>
             )}
           </div>
           {subtitle && (
-            <p className="text-xs sm:text-sm text-gray-500 mt-1">
+            <p className="text-xs sm:text-sm text-[#687280] mt-1">
               {subtitle}
             </p>
           )}
@@ -46,7 +46,7 @@ export const CuratedProductRow: React.FC<CuratedProductRowProps> = ({
         {viewAllLink && (
           <Link
             to={viewAllLink}
-            className="text-xs sm:text-sm font-bold text-[#1A1A1A] hover:text-[#B89B5E] flex items-center gap-1.5 transition-colors shrink-0 group"
+            className="text-xs sm:text-sm font-bold text-[#04383f] hover:text-[#08606B] flex items-center gap-1.5 transition-colors shrink-0 group"
           >
             <span>عرض الكل</span>
             <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
