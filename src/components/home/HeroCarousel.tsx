@@ -3,7 +3,6 @@ import { Link } from 'react-router-dom';
 import { Banner } from '../../types';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
 import { handleImageError, BANNER_FALLBACK_IMAGE } from '../../utils/imageUtils';
-import { TextureButton } from '../common/TextureButton';
 
 interface HeroCarouselProps {
   banners: Banner[];
@@ -41,7 +40,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ banners }) => {
   };
 
   const bannerInner = (
-    <>
+    <div className="relative w-full h-full overflow-hidden">
       {/* Responsive Image with smooth transition */}
       <picture>
         <source media="(min-width: 768px)" srcSet={current.image_desktop_url} />
@@ -52,36 +51,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ banners }) => {
           className="w-full h-full object-cover transition-all duration-700 transform group-hover:scale-[1.01]"
         />
       </picture>
-
-      {/* Floating Editorial Card (when show_overlay_text !== false and has text) */}
-      {current.show_overlay_text !== false && (current.title_ar || current.subtitle_ar || current.cta_text_ar) ? (
-        <div className="absolute inset-0 flex items-center justify-start p-4 sm:p-8 md:p-12 text-right pointer-events-none">
-          <div className="bg-white/95 backdrop-blur-md border border-[rgba(17,21,26,0.11)] rounded-2xl sm:rounded-3xl p-5 sm:p-7 max-w-md sm:max-w-lg shadow-floating-card space-y-2.5 sm:space-y-3 animate-fade-in pointer-events-auto">
-            <div className="inline-flex items-center gap-1.5 text-[11px] font-bold text-[#08606B] bg-[rgba(8,96,107,0.08)] px-3 py-0.5 rounded-full">
-              <span>تشكيلات مختارة</span>
-            </div>
-            {current.title_ar && (
-              <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-[#04383f] leading-tight tracking-tight">
-                {current.title_ar}
-              </h2>
-            )}
-            {current.subtitle_ar && (
-              <p className="text-xs sm:text-sm text-[#687280] line-clamp-2 leading-relaxed font-medium">
-                {current.subtitle_ar}
-              </p>
-            )}
-            {current.cta_text_ar && (
-              <div className="pt-2">
-                <TextureButton variant="primary" size="md" className="gap-2">
-                  <span>{current.cta_text_ar}</span>
-                  <ChevronLeft className="w-4 h-4 rtl:rotate-0 ltr:rotate-180" />
-                </TextureButton>
-              </div>
-            )}
-          </div>
-        </div>
-      ) : null}
-    </>
+    </div>
   );
 
   return (

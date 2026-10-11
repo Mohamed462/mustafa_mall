@@ -141,7 +141,7 @@ export const Header: React.FC = () => {
                 className="h-10 sm:h-12 w-auto object-contain transition-transform group-hover:scale-105 drop-shadow-sm"
               />
               <div className="flex flex-col text-right">
-                <span className="font-cairo font-black text-base sm:text-lg text-[#04383f] tracking-tight leading-none group-hover:text-[#08606B] transition-colors">
+                <span className="font-sans font-black text-base sm:text-lg text-[#04383f] tracking-tight leading-none group-hover:text-[#08606B] transition-colors">
                   مول المصطفى
                 </span>
                 <span className="text-[9px] sm:text-[10px] text-[#08606B] font-bold tracking-wider">
@@ -490,7 +490,7 @@ export const Header: React.FC = () => {
             <div className="p-4 bg-[#04383f] text-white flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <img src="/brand-logo-transparent.webp" alt="مول المصطفى" className="h-9 w-9 object-contain" />
-                <span className="font-cairo font-black text-sm text-white">مول المصطفى</span>
+                <span className="font-sans font-black text-sm text-white">مول المصطفى</span>
               </div>
               <button 
                 onClick={() => setIsMobileMenuOpen(false)}

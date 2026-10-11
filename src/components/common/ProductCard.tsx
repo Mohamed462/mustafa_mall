@@ -59,9 +59,9 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
         {/* Top Badges & Product Image Box with Warm Ivory Framing */}
         <div className="relative aspect-square w-full bg-[#f8fafb] rounded-xl overflow-hidden flex items-center justify-center p-3 mb-2.5">
           
-          {/* Editorial Burnt Orange Discount Badge */}
+          {/* Cyber Cyan Discount Badge */}
           {discountPercent > 0 && (
-            <div className="absolute top-2 start-2 z-10 bg-[#00D2D3] text-white font-bold text-[10px] px-2 py-0.5 rounded-full shadow-xs">
+            <div className="absolute top-2 start-2 z-10 bg-[#00D2D3] text-[#04383f] font-black text-[10px] px-2 py-0.5 rounded-full shadow-xs">
               خصم {discountPercent}%
             </div>
           )}

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Truck, Clock, MapPin, Zap, Search, ShieldCheck, ArrowLeft, PackageCheck } from 'lucide-react';
+import { TextureButton } from '../common/TextureButton';
 
 interface GovernorateSpeed {
   id: string;
@@ -214,13 +215,15 @@ export const DeliveryRadar: React.FC = () => {
               />
             </div>
 
-            <button
+            <TextureButton
               type="submit"
-              className="w-full bg-[#08606B] hover:bg-[#03292e] text-white py-3.5 rounded-xl font-bold text-sm flex items-center justify-center gap-2 shadow-md cursor-pointer transition-all active:scale-98"
+              variant="accent"
+              size="lg"
+              className="w-full gap-2 font-black text-sm"
             >
               <span>استعلام عن حالة الشحنة</span>
               <ArrowLeft className="w-4 h-4 rtl:rotate-0 ltr:rotate-180" />
-            </button>
+            </TextureButton>
           </form>
 
           {/* Quick status notice */}
