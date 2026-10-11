@@ -5,7 +5,6 @@ import {
   LayoutDashboard, 
   Package, 
   FolderTree, 
-  Award, 
   Boxes, 
   ShoppingCart, 
   Users, 
@@ -45,13 +44,13 @@ export const AdminLayout: React.FC = () => {
           <div className="pt-2 flex flex-col gap-2">
             <Link
               to="/account"
-              className="w-full py-2.5 bg-mall-900 text-white rounded-xl text-xs font-bold"
+              className="w-full py-2.5 bg-[#08606B] hover:bg-[#04383f] text-white rounded-xl text-xs font-bold transition-colors"
             >
               تسجيل الدخول كمسؤول
             </Link>
             <Link
               to="/"
-              className="w-full py-2.5 bg-gray-100 text-gray-700 rounded-xl text-xs font-bold"
+              className="w-full py-2.5 bg-gray-100 hover:bg-gray-200 text-gray-700 rounded-xl text-xs font-bold transition-colors"
             >
               العودة للمتجر
             </Link>
@@ -134,35 +133,35 @@ export const AdminLayout: React.FC = () => {
   };
 
   return (
-    <div className="min-h-screen bg-gray-100 flex text-right font-arabic">
+    <div className="min-h-screen bg-gray-100 flex text-right font-sans">
       {/* Sidebar Desktop */}
-      <aside className="hidden lg:flex flex-col w-64 bg-mall-950 text-gray-300 border-s border-mall-900 shrink-0 print:hidden">
+      <aside className="hidden lg:flex flex-col w-64 bg-[#032328] text-slate-300 border-s border-white/10 shrink-0 print:hidden shadow-xl">
         {/* Brand Header */}
-        <div className="p-4 border-b border-mall-900 flex items-center justify-between">
-          <Link to="/" className="flex items-center gap-2.5">
-            <img src="/brand-logo-transparent.webp" alt="مول المصطفى" className="h-9 w-9 object-contain drop-shadow" />
+        <div className="p-4 border-b border-white/10 flex items-center justify-between">
+          <Link to="/" className="flex items-center gap-2.5 group">
+            <img src="/brand-logo-transparent.webp" alt="مول المصطفى" className="h-9 w-9 object-contain drop-shadow transition-transform group-hover:scale-105" />
             <div>
-              <span className="font-cairo font-black text-sm text-white block leading-tight">مول المصطفى</span>
-              <span className="text-[9px] text-gold-400 font-semibold tracking-wider">لوحة الإدارة والتحكم</span>
+              <span className="font-bold text-sm text-white block leading-tight">مول المصطفى</span>
+              <span className="text-[9px] text-[#00D2D3] font-mono font-semibold tracking-wider">لوحة الإدارة والتحكم</span>
             </div>
           </Link>
-          <span className="text-[10px] bg-gold-500 text-mall-950 font-black px-1.5 py-0.5 rounded">
+          <span className="text-[10px] bg-[#00D2D3] text-[#04383f] font-mono font-black px-1.5 py-0.5 rounded shadow-xs">
             ERP
           </span>
         </div>
 
         {/* User Info Bar */}
-        <div className="p-3 bg-mall-900/60 border-b border-mall-900 flex items-center justify-between text-xs">
+        <div className="p-3 bg-[#04383f]/60 border-b border-white/10 flex items-center justify-between text-xs">
           <div className="flex items-center gap-2">
-            <div className="w-7 h-7 rounded-full bg-gold-500 text-mall-950 flex items-center justify-center font-black text-xs">
+            <div className="w-7 h-7 rounded-full bg-[#08606B] text-[#00D2D3] border border-[#00D2D3]/30 flex items-center justify-center font-black text-xs shadow-xs">
               {currentUser?.name?.charAt(0) || 'أ'}
             </div>
             <div>
               <span className="font-bold text-white block text-[11px] leading-tight">{currentUser?.name}</span>
-              <span className="text-[10px] text-gold-400 font-semibold">{currentUser?.role}</span>
+              <span className="text-[10px] text-[#00D2D3] font-semibold">{currentUser?.role}</span>
             </div>
           </div>
-          <Link to="/" target="_blank" className="p-1.5 text-gray-400 hover:text-white hover:bg-mall-800 rounded-lg transition-colors" title="معاينة المتجر">
+          <Link to="/" target="_blank" className="p-1.5 text-slate-400 hover:text-white hover:bg-white/10 rounded-lg transition-colors" title="معاينة المتجر">
             <ExternalLink className="w-4 h-4" />
           </Link>
         </div>
@@ -171,7 +170,7 @@ export const AdminLayout: React.FC = () => {
         <nav className="flex-1 overflow-y-auto p-3 space-y-4 text-xs">
           {visibleNavGroups.map((group) => (
             <div key={group.title} className="space-y-1">
-              <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-3 py-1">
+              <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 py-1">
                 {group.title}
               </h3>
               {group.links.map((link) => {
@@ -182,13 +181,13 @@ export const AdminLayout: React.FC = () => {
                   <Link
                     key={link.path}
                     to={link.path}
-                    className={`flex items-center gap-2.5 px-3 py-2 rounded-xl font-bold transition-colors ${
+                    className={`group flex items-center gap-2.5 px-3 py-2 rounded-xl font-bold transition-all duration-200 ${
                       isActive 
-                        ? 'bg-gold-500 text-mall-950 shadow-sm' 
-                        : 'text-gray-300 hover:text-white hover:bg-mall-900'
+                        ? 'bg-gradient-to-r from-[#08606B] to-[#0a7582] text-white shadow-md border border-[#00D2D3]/30' 
+                        : 'text-slate-300 hover:text-white hover:bg-white/10'
                     }`}
                   >
-                    <Icon className={`w-4 h-4 ${isActive ? 'text-mall-950' : 'text-gold-400/80'}`} />
+                    <Icon className={`w-4 h-4 transition-colors ${isActive ? 'text-[#00D2D3]' : 'text-slate-400 group-hover:text-[#00D2D3]'}`} />
                     <span>{link.label}</span>
                   </Link>
                 );
@@ -198,11 +197,11 @@ export const AdminLayout: React.FC = () => {
         </nav>
 
         {/* Footer Logout */}
-        <div className="p-3 border-t border-mall-900">
+        <div className="p-3 border-t border-white/10">
           <button
             type="button"
             onClick={handleLogout}
-            className="w-full flex items-center gap-2 px-3 py-2 text-red-400 hover:text-red-300 hover:bg-red-950/40 rounded-xl text-xs font-bold transition-colors"
+            className="w-full flex items-center gap-2 px-3 py-2 text-rose-400 hover:text-rose-300 hover:bg-rose-500/10 rounded-xl text-xs font-bold transition-colors cursor-pointer"
           >
             <LogOut className="w-4 h-4" />
             <span>تسجيل الخروج</span>
@@ -218,7 +217,7 @@ export const AdminLayout: React.FC = () => {
             <button
               type="button"
               onClick={() => setIsMobileSidebarOpen(true)}
-              className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg"
+              className="lg:hidden p-2 text-gray-600 hover:bg-gray-100 rounded-lg cursor-pointer"
               aria-label="القائمة الجانبية"
             >
               <Menu className="w-5 h-5" />
@@ -231,7 +230,7 @@ export const AdminLayout: React.FC = () => {
           <div className="flex items-center gap-3">
             <Link
               to="/"
-              className="inline-flex items-center gap-1.5 text-xs font-bold text-mall-900 hover:text-gold-600 bg-gray-50 border border-gray-200 px-3 py-1.5 rounded-lg transition-colors"
+              className="inline-flex items-center gap-1.5 text-xs font-bold text-[#08606B] hover:text-[#04383f] bg-[#08606B]/5 hover:bg-[#08606B]/10 border border-[#08606B]/20 px-3 py-1.5 rounded-lg transition-colors"
             >
               <span>واجهة المتجر</span>
               <ExternalLink className="w-3.5 h-3.5" />
@@ -243,7 +242,7 @@ export const AdminLayout: React.FC = () => {
         <main className="flex-1 p-4 sm:p-6 lg:p-8 overflow-y-auto print:p-0 print:overflow-visible">
           <React.Suspense fallback={
             <div className="min-h-[50vh] flex flex-col items-center justify-center p-8 gap-3 text-center">
-              <div className="w-10 h-10 border-4 border-gold-500 border-t-transparent rounded-full animate-spin" />
+              <div className="w-10 h-10 border-4 border-[#08606B] border-t-transparent rounded-full animate-spin" />
               <span className="text-xs text-gray-500 font-bold">جاري تحميل لوحة التحكم...</span>
             </div>
           }>
@@ -256,15 +255,15 @@ export const AdminLayout: React.FC = () => {
       {isMobileSidebarOpen && (
         <div className="lg:hidden fixed inset-0 z-50 overflow-hidden">
           <div className="absolute inset-0 bg-black/60" onClick={() => setIsMobileSidebarOpen(false)} />
-          <div className="fixed inset-y-0 start-0 max-w-xs w-full bg-mall-950 text-white shadow-2xl flex flex-col z-50">
-            <div className="p-4 border-b border-mall-900 flex items-center justify-between">
+          <div className="fixed inset-y-0 start-0 max-w-xs w-full bg-[#032328] text-white shadow-2xl flex flex-col z-50">
+            <div className="p-4 border-b border-white/10 flex items-center justify-between">
               <div className="flex items-center gap-2">
                 <img src="/brand-logo-transparent.webp" alt="مول المصطفى" className="h-8 w-8 object-contain" />
-                <span className="font-cairo font-black text-sm text-white">مول المصطفى - الإدارة</span>
+                <span className="font-bold text-sm text-white">مول المصطفى - الإدارة</span>
               </div>
               <button 
                 onClick={() => setIsMobileSidebarOpen(false)} 
-                className="text-gray-400 hover:text-white"
+                className="text-gray-400 hover:text-white cursor-pointer"
                 aria-label="إغلاق"
               >
                 <X className="w-5 h-5" />
@@ -273,22 +272,24 @@ export const AdminLayout: React.FC = () => {
             <nav className="flex-1 overflow-y-auto p-3 space-y-4 text-xs">
               {visibleNavGroups.map((group) => (
                 <div key={group.title} className="space-y-1">
-                  <h3 className="text-[10px] font-bold text-gray-400 uppercase tracking-wider px-3 py-1">
+                  <h3 className="text-[10px] font-bold text-slate-400 uppercase tracking-wider px-3 py-1">
                     {group.title}
                   </h3>
                   {group.links.map((link) => {
                     const Icon = link.icon;
-                    const isActive = location.pathname === link.path;
+                    const isActive = location.pathname === link.path || (link.path !== '/admin' && location.pathname.startsWith(link.path));
                     return (
                       <Link
                         key={link.path}
                         to={link.path}
                         onClick={() => setIsMobileSidebarOpen(false)}
-                        className={`flex items-center gap-2.5 px-3 py-2 rounded-xl font-bold transition-colors ${
-                          isActive ? 'bg-gold-500 text-mall-950 font-black' : 'text-gray-300 hover:bg-mall-900'
+                        className={`flex items-center gap-2.5 px-3 py-2 rounded-xl font-bold transition-all ${
+                          isActive 
+                            ? 'bg-gradient-to-r from-[#08606B] to-[#0a7582] text-white shadow-md border border-[#00D2D3]/30' 
+                            : 'text-slate-300 hover:bg-white/10'
                         }`}
                       >
-                        <Icon className="w-4 h-4" />
+                        <Icon className={`w-4 h-4 ${isActive ? 'text-[#00D2D3]' : 'text-slate-400'}`} />
                         <span>{link.label}</span>
                       </Link>
                     );
