@@ -2,31 +2,18 @@ import React, { useState, useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Truck, Clock, MapPin, Zap, Search, ShieldCheck, ArrowLeft, PackageCheck } from 'lucide-react';
 import { TextureButton } from '../common/TextureButton';
-
-interface GovernorateSpeed {
-  id: string;
-  name_ar: string;
-  deliveryTime: string;
-  standardCost: string;
-  expressAvailable: boolean;
-  notes: string;
-}
-
-const GOVERNORATES_DATA: GovernorateSpeed[] = [
-  { id: 'cairo', name_ar: 'القاهرة', deliveryTime: 'خلال 24 ساعة (نفس اليوم متاح)', standardCost: '45 ج.م (مجاناً فوق 1000 ج.م)', expressAvailable: true, notes: 'تسليم سريع بمندوب خاص من مخازننا الرئيسية' },
-  { id: 'giza', name_ar: 'الجيزة', deliveryTime: 'خلال 24 ساعة (نفس اليوم متاح)', standardCost: '45 ج.م (مجاناً فوق 1000 ج.م)', expressAvailable: true, notes: 'تغطية شاملة لجميع مناطق الجيزة والشيخ زايد وأكتوبر' },
-  { id: 'alex', name_ar: 'الإسكندرية', deliveryTime: 'خلال 24 - 48 ساعة', standardCost: '55 ج.م (مجاناً فوق 1000 ج.م)', expressAvailable: true, notes: 'توصيل يومي منتظم' },
-  { id: 'delta', name_ar: 'محافظات الدلتا (الدقهلية، الغربية، المنوفية، القليوبية، البحيرة)', deliveryTime: 'خلال 24 - 48 ساعة', standardCost: '55 ج.م (مجاناً فوق 1000 ج.م)', expressAvailable: false, notes: 'توصيل حتى باب المنزل في جميع المراكز والقرى' },
-  { id: 'canal', name_ar: 'مدن القناة (بورسعيد، الإسماعيلية، السويس)', deliveryTime: 'خلال 24 - 48 ساعة', standardCost: '55 ج.م (مجاناً فوق 1000 ج.م)', expressAvailable: false, notes: 'شحن يومي عبر أسطولنا اللوجستي' },
-  { id: 'upper1', name_ar: 'شمال الصعيد (بني سويف، الفيوم، المنيا)', deliveryTime: 'خلال 48 ساعة', standardCost: '65 ج.م (مجاناً فوق 1000 ج.م)', expressAvailable: false, notes: 'معاينة كاملة للمنتج قبل الاستلام والدفع' },
-  { id: 'upper2', name_ar: 'جنوب الصعيد (أسيوط، سوهاج، قنا، الأقصر، أسوان)', deliveryTime: 'خلال 48 - 72 ساعة', standardCost: '75 ج.م (مجاناً فوق 1000 ج.م)', expressAvailable: false, notes: 'شحن آمن ومؤمن عليه بنسبة 100%' },
-  { id: 'borders', name_ar: 'المحافظات الحدودية والبحر الأحمر ومطروح', deliveryTime: 'خلال 3 - 5 أيام عمل', standardCost: '85 ج.م', expressAvailable: false, notes: 'توصيل لجميع المدن الساحلية والحدودية' },
-];
+import { useStoreSettings } from '../../context/StoreSettingsContext';
+import { dbStore } from '../../services/dbStore';
 
 export const DeliveryRadar: React.FC = () => {
   const navigate = useNavigate();
+  const { settings } = useStoreSettings();
+  const allGovs = dbStore.getGovernorateShippingRates().filter(g => g.is_active);
   const [selectedGovId, setSelectedGovId] = useState<string>('cairo');
   const [trackNumber, setTrackNumber] = useState<string>('');
+  
+  const rawThreshold = Number(settings.free_shipping_threshold_egp);
+  const freeThreshold = (rawThreshold > 0 && rawThreshold !== 500) ? rawThreshold : 750;
   
   // Real-time countdown calculation
   const [timeLeft, setTimeLeft] = useState<{ hours: number; minutes: number; seconds: number }>({
@@ -53,7 +40,13 @@ export const DeliveryRadar: React.FC = () => {
     return () => clearInterval(timer);
   }, []);
 
-  const currentGov = GOVERNORATES_DATA.find(g => g.id === selectedGovId) || GOVERNORATES_DATA[0];
+  const currentGov = allGovs.find(g => g.id === selectedGovId) || allGovs[0] || {
+    id: 'cairo',
+    name_ar: 'القاهرة',
+    fee_egp: 35,
+    estimated_days: '24 ساعة',
+    is_active: true
+  };
 
   const handleTrackSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -75,10 +68,10 @@ export const DeliveryRadar: React.FC = () => {
           <div>
             <div className="flex items-center gap-2">
               <span className="inline-block w-2.5 h-2.5 rounded-full bg-emerald-400 animate-ping" />
-              <span className="text-xs font-bold text-emerald-300">مستودعاتنا تعمل الآن بكامل طاقتها</span>
+              <span className="text-xs font-bold text-emerald-300">شغالين على مدار الساعة عشان طلبك يوصل قوام</span>
             </div>
             <h3 className="text-base sm:text-lg font-black text-white mt-0.5">
-              رادار سرعة الشحن والتوصيل الفوري لمحافظات مصر
+              التوصيل لحد باب بيتك في لمح البصر! 🚀
             </h3>
           </div>
         </div>
@@ -86,8 +79,8 @@ export const DeliveryRadar: React.FC = () => {
         {/* Live Timer Pill */}
         <div className="bg-[#001E27] border border-[#003746] px-4 py-2.5 rounded-xl flex items-center gap-3">
           <div className="text-right">
-            <span className="text-[11px] text-gray-300 block font-medium">اطلب الآن ليصلك طلبك غداً</span>
-            <span className="text-xs text-white font-bold">متبقي قبل إغلاق شحنات اليوم:</span>
+            <span className="text-[11px] text-gray-300 block font-medium">اطلب دلوقتي واستلم بكرة!</span>
+            <span className="text-xs text-white font-bold">متبقي قبل خروج شحنات النهاردة:</span>
           </div>
           <div className="flex items-center gap-1 font-mono text-base sm:text-lg font-black text-[#00D2D3] bg-[#04383f] px-3 py-1 rounded-lg border border-[#003746]" dir="ltr">
             <span>{format2Digits(timeLeft.hours)}</span>:
@@ -106,7 +99,7 @@ export const DeliveryRadar: React.FC = () => {
           <div>
             <div className="flex items-center gap-2 text-[#08606B] text-xs font-bold mb-2">
               <MapPin className="w-4 h-4" />
-              <span>اختر محافظتك للتحقق من سرعة وصول الطلب</span>
+              <span>اختار محافظتك وشوف طلبك هيوصلك إمتى بالظبط</span>
             </div>
             <h4 className="text-xl sm:text-2xl font-black text-[#04383f]">
               توصيل يغطي جميع المحافظات والقرى المصرية
@@ -118,7 +111,7 @@ export const DeliveryRadar: React.FC = () => {
 
           {/* Quick Governorate Buttons Grid */}
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-2.5">
-            {GOVERNORATES_DATA.map((gov) => (
+            {allGovs.slice(0, 8).map((gov) => (
               <button
                 key={gov.id}
                 type="button"
@@ -129,20 +122,32 @@ export const DeliveryRadar: React.FC = () => {
                     : 'bg-[#f8fafb] text-[#04383f] hover:bg-[#EDE9DE] border border-[rgba(17,21,26,0.11)]'
                 }`}
               >
-                {gov.name_ar.split(' ')[0]}
+                {gov.name_ar}
               </button>
             ))}
+          </div>
+
+          {/* Or select any governorate from Egypt's 27 */}
+          <div className="flex items-center gap-2 text-xs">
+            <span className="text-[#687280] font-bold">أو اختر من باقي المحافظات:</span>
+            <select
+              value={selectedGovId}
+              onChange={(e) => setSelectedGovId(e.target.value)}
+              className="p-2 border border-slate-200 rounded-xl bg-white font-bold text-[#04383f] focus:outline-none focus:border-[#08606B] cursor-pointer"
+            >
+              {allGovs.map((gov) => (
+                <option key={gov.id} value={gov.id}>{gov.name_ar}</option>
+              ))}
+            </select>
           </div>
 
           {/* Governorate Dynamic Details Card */}
           <div className="bg-[#f8fafb] border border-[rgba(17,21,26,0.11)] rounded-2xl p-5 space-y-3.5">
             <div className="flex justify-between items-center pb-3 border-b border-[rgba(17,21,26,0.11)]">
               <span className="font-bold text-[#04383f] text-base">{currentGov.name_ar}</span>
-              {currentGov.expressAvailable && (
-                <span className="text-[11px] bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-1 rounded-full font-bold">
-                  ⚡ شحن فوري متاح
-                </span>
-              )}
+              <span className="text-[11px] bg-emerald-50 text-emerald-800 border border-emerald-200 px-2.5 py-1 rounded-full font-bold">
+                ⚡ شحن فوري وتوصيل سريع
+              </span>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-xs">
@@ -150,7 +155,7 @@ export const DeliveryRadar: React.FC = () => {
                 <Clock className="w-5 h-5 text-[#08606B] shrink-0" />
                 <div>
                   <span className="text-[#687280] block font-medium">المدة المتوقعة:</span>
-                  <span className="font-black text-[#04383f] text-sm">{currentGov.deliveryTime}</span>
+                  <span className="font-black text-[#04383f] text-sm">{currentGov.estimated_days}</span>
                 </div>
               </div>
 
@@ -158,13 +163,15 @@ export const DeliveryRadar: React.FC = () => {
                 <Truck className="w-5 h-5 text-[#08606B] shrink-0" />
                 <div>
                   <span className="text-[#687280] block font-medium">تكلفة الشحن:</span>
-                  <span className="font-black text-[#04383f] text-sm">{currentGov.standardCost}</span>
+                  <span className="font-black text-[#04383f] text-sm">
+                    {currentGov.fee_egp} ج.م (مجاناً فوق {freeThreshold} ج.م)
+                  </span>
                 </div>
               </div>
             </div>
 
             <p className="text-xs text-[#687280] pt-1">
-              💡 {currentGov.notes}
+              💡 تسليم بمندوب خاص مع إمكانية فتح الشحنة والفحص الشامل قبل الدفع.
             </p>
           </div>
 
@@ -177,7 +184,7 @@ export const DeliveryRadar: React.FC = () => {
             </div>
             <div className="p-3 bg-[#f8fafb] rounded-xl border border-[rgba(17,21,26,0.11)]">
               <PackageCheck className="w-5 h-5 text-[#00D2D3] mx-auto mb-1" />
-              <span className="font-bold text-[#04383f] block">شحن مجاني فوق 1000ج</span>
+              <span className="font-bold text-[#04383f] block">شحن مجاني فوق {freeThreshold}ج</span>
               <span className="text-[10px] text-[#687280]">لكافة المنتجات والأقسام</span>
             </div>
             <div className="p-3 bg-[#f8fafb] rounded-xl border border-[rgba(17,21,26,0.11)]">

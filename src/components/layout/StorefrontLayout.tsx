@@ -7,6 +7,7 @@ import { useWishlist } from '../../context/WishlistContext';
 import { dbStore } from '../../services/dbStore';
 import { NavItem } from '../../types';
 import { Home, Grid, Printer, Heart, ShoppingCart } from 'lucide-react';
+import { PeekabooMascot } from '../common/PeekabooMascot';
 
 export const StorefrontLayout: React.FC = () => {
   const location = useLocation();
@@ -81,6 +82,7 @@ export const StorefrontLayout: React.FC = () => {
           <Outlet />
         </React.Suspense>
       </main>
+      <PeekabooMascot />
       <Footer />
 
       {/* Mobile Sticky Bottom Navigation Bar (Editorial Retail Experience) */}

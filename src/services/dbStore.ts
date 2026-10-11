@@ -17,7 +17,8 @@ import {
   AuditLog,
   NavItem,
   StaffMember,
-  UserProfile
+  UserProfile,
+  GovernorateShippingRate
 } from '../types';
 import { 
   INITIAL_CATEGORIES, 
@@ -31,7 +32,8 @@ import {
   INITIAL_COUPONS,
   INITIAL_NAV_ITEMS,
   INITIAL_STAFF,
-  INITIAL_ORDERS
+  INITIAL_ORDERS,
+  INITIAL_GOVERNORATE_SHIPPING_RATES
 } from './mockData';
 
 const STORAGE_KEY = 'al_mostafa_store_v1';
@@ -87,14 +89,20 @@ function loadState(): StoreState {
     if (raw) {
       const parsed = JSON.parse(raw);
 
-      // Homepage sections merging: preserve saved customizations, but ensure all default sections exist
+      // Homepage sections merging: adopt latest Egyptian dialect titles while preserving user visibility
       const savedSections: HomepageSection[] = Array.isArray(parsed.homepageSections) ? parsed.homepageSections : [];
-      const mergedSections: HomepageSection[] = [...savedSections];
-      for (const initSec of INITIAL_HOMEPAGE_SECTIONS) {
-        if (!mergedSections.some(s => s.section_key === initSec.section_key)) {
-          mergedSections.push({ ...initSec });
+      const mergedSections: HomepageSection[] = INITIAL_HOMEPAGE_SECTIONS.map(initSec => {
+        const existing = savedSections.find(s => s.section_key === initSec.section_key);
+        if (existing) {
+          return {
+            ...initSec,
+            is_visible: existing.is_visible,
+            is_enabled: existing.is_enabled,
+            sort_order: existing.sort_order ?? initSec.sort_order,
+          };
         }
-      }
+        return { ...initSec };
+      });
 
       // Nav items resolution from dedicated key or parsed store
       let resolvedNavItems: NavItem[] = clone(INITIAL_NAV_ITEMS);
@@ -133,13 +141,48 @@ function loadState(): StoreState {
         };
       });
 
+      // Governorate shipping rates resolution: ensure all 27 governorates are present and active
+      const savedRates: GovernorateShippingRate[] = Array.isArray(parsed.settings?.governorate_shipping_rates)
+        ? parsed.settings.governorate_shipping_rates
+        : [];
+      const resolvedShippingRates: GovernorateShippingRate[] = INITIAL_GOVERNORATE_SHIPPING_RATES.map(initRate => {
+        const existing = savedRates.find(r => r.id === initRate.id || r.name_ar === initRate.name_ar);
+        if (existing) {
+          return {
+            ...initRate,
+            fee_egp: typeof existing.fee_egp === 'number' ? existing.fee_egp : initRate.fee_egp,
+            estimated_days: existing.estimated_days || initRate.estimated_days,
+            is_active: typeof existing.is_active === 'boolean' ? existing.is_active : initRate.is_active,
+          };
+        }
+        return { ...initRate };
+      });
+
+      // Free shipping threshold resolution: migrate legacy 500 or undefined/0 to 750
+      let resolvedFreeThreshold = Number(parsed.settings?.free_shipping_threshold_egp);
+      if (!resolvedFreeThreshold || resolvedFreeThreshold === 500 || isNaN(resolvedFreeThreshold) || resolvedFreeThreshold <= 0) {
+        resolvedFreeThreshold = INITIAL_SETTINGS.free_shipping_threshold_egp || 750;
+      }
+
+      // Phone and WhatsApp number resolution: migrate legacy 01023456789 to 01017297414
+      const resolvedPhone = (parsed.settings?.phone && parsed.settings.phone !== '01023456789')
+        ? parsed.settings.phone
+        : '01017297414';
+      const resolvedWhatsapp = (parsed.settings?.whatsapp_number && parsed.settings.whatsapp_number !== '+201023456789')
+        ? parsed.settings.whatsapp_number
+        : '+201017297414';
+
       return {
         settings: {
           ...INITIAL_SETTINGS,
           ...(parsed.settings || {}),
+          phone: resolvedPhone,
+          whatsapp_number: resolvedWhatsapp,
+          free_shipping_threshold_egp: resolvedFreeThreshold,
           logo_url: (!parsed.settings?.logo_url || parsed.settings.logo_url === '/logo.svg' || parsed.settings.logo_url === '/logo-light.svg')
             ? '/brand-logo-transparent.webp'
             : parsed.settings.logo_url,
+          governorate_shipping_rates: resolvedShippingRates,
         },
         categories: parsed.categories?.length ? parsed.categories : clone(INITIAL_CATEGORIES),
         brands: parsed.brands?.length ? parsed.brands : clone(INITIAL_BRANDS),
@@ -292,6 +335,40 @@ export const dbStore = {
     state.settings = { ...state.settings, ...newSettings };
     saveState(state);
     dbStore.logAudit('update', 'store_settings', 'global', 'تم تحديث إعدادات المتجر');
+    return state.settings;
+  },
+
+  // GOVERNORATE SHIPPING RATES
+  getGovernorateShippingRates: (): GovernorateShippingRate[] => {
+    return state.settings.governorate_shipping_rates || clone(INITIAL_GOVERNORATE_SHIPPING_RATES);
+  },
+  getShippingFeeForGovernorate: (govName?: string, subtotal: number = 0): number => {
+    const rawThreshold = Number(state.settings.free_shipping_threshold_egp);
+    const threshold = (rawThreshold > 0 && rawThreshold !== 500) ? rawThreshold : 750;
+    if (subtotal >= threshold && subtotal > 0) {
+      return 0;
+    }
+    const rates = state.settings.governorate_shipping_rates || INITIAL_GOVERNORATE_SHIPPING_RATES;
+    if (!govName) {
+      return state.settings.shipping_flat_fee_egp ?? 45;
+    }
+    const cleaned = govName.trim();
+    const matched = rates.find(r => r.name_ar === cleaned || cleaned.includes(r.name_ar) || r.name_ar.includes(cleaned));
+    if (matched && matched.is_active) {
+      return matched.fee_egp;
+    }
+    return state.settings.shipping_flat_fee_egp ?? 45;
+  },
+  updateGovernorateShippingRates: (rates: GovernorateShippingRate[]): StoreSettings => {
+    state.settings = {
+      ...state.settings,
+      governorate_shipping_rates: rates,
+    };
+    saveState(state);
+    dbStore.logAudit('update', 'shipping_rates', 'rates', 'تم تحديث أسعار شحن المحافظات');
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('al_mostafa_shipping_updated'));
+    }
     return state.settings;
   },
 

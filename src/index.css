@@ -34,6 +34,8 @@ html {
   text-align: right;
   scroll-behavior: smooth;
   background-color: var(--cf-bg);
+  max-width: 100vw;
+  overflow-x: clip;
 }
 
 body {
@@ -41,9 +43,22 @@ body {
   font-family: 'Alexandria', system-ui, -apple-system, sans-serif;
   background-color: var(--cf-bg);
   color: var(--cf-ink);
-  overflow-x: hidden;
+  max-width: 100vw;
+  overflow-x: clip;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+}
+
+#root {
+  max-width: 100vw;
+  overflow-x: clip;
+}
+
+/* Prevent unwanted zoom and layout shifting on mobile focus */
+@media screen and (max-width: 768px) {
+  input, select, textarea {
+    font-size: 16px !important;
+  }
 }
 
 /* Selection Color */
@@ -52,12 +67,18 @@ body {
   color: var(--fm-teal-dark);
 }
 
-/* Drafting Grid Background (Architectural Texture from FullMark) */
+/* Architectural Drafting Grid Background (Directly from FullMark) */
 .drafting-grid {
-  background-size: 32px 32px;
+  position: fixed;
+  inset: 0;
+  pointer-events: none;
+  z-index: 0;
   background-image: 
-    linear-gradient(to right, rgba(17, 21, 26, 0.03) 1px, transparent 1px),
-    linear-gradient(to bottom, rgba(17, 21, 26, 0.03) 1px, transparent 1px);
+    linear-gradient(to right, rgba(8, 96, 107, 0.045) 1px, transparent 1px),
+    linear-gradient(to bottom, rgba(8, 96, 107, 0.045) 1px, transparent 1px);
+  background-size: 32px 32px;
+  mask-image: radial-gradient(circle at 50% 40%, black 40%, transparent 85%);
+  -webkit-mask-image: radial-gradient(circle at 50% 40%, black 40%, transparent 85%);
 }
 
 /* Custom Scrollbar */

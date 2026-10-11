@@ -201,8 +201,6 @@ export const Footer: React.FC = () => {
           <Link to="/page/terms" className="text-slate-400 hover:text-white transition-colors">الشروط والأحكام</Link>
           <span>•</span>
           <Link to="/page/privacy" className="text-slate-400 hover:text-white transition-colors">الخصوصية</Link>
-          <span>•</span>
-          <Link to="/admin" className="text-[#00D2D3] hover:underline font-bold transition-colors">بوابة الإدارة</Link>
         </div>
       </div>
     </footer>

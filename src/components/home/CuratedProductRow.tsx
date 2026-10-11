@@ -48,7 +48,7 @@ export const CuratedProductRow: React.FC<CuratedProductRowProps> = ({
             to={viewAllLink}
             className="text-xs sm:text-sm font-bold text-[#04383f] hover:text-[#08606B] flex items-center gap-1.5 transition-colors shrink-0 group"
           >
-            <span>عرض الكل</span>
+            <span>شوف الكل</span>
             <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
           </Link>
         )}

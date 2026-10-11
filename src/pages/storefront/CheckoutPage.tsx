@@ -1,6 +1,6 @@
 import React, { useState, useEffect } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
-import { useCart } from '../../context/CartContext';
+import { useCart, getProductMaxOrderLimit } from '../../context/CartContext';
 import { useStoreSettings } from '../../context/StoreSettingsContext';
 import { useAuth } from '../../context/AuthContext';
 import { dbStore } from '../../services/dbStore';
@@ -60,7 +60,9 @@ export const CheckoutPage: React.FC = () => {
     appliedCoupon, 
     applyCoupon, 
     removeCoupon, 
-    clearCart 
+    clearCart,
+    selectedGovernorate,
+    setSelectedGovernorate
   } = useCart();
   const { settings } = useStoreSettings();
   const { currentUser, isAuthenticated } = useAuth();
@@ -68,11 +70,22 @@ export const CheckoutPage: React.FC = () => {
   const [fullName, setFullName] = useState(currentUser?.name || '');
   const [phone, setPhone] = useState(currentUser?.phone || '');
   const [email, setEmail] = useState(currentUser?.email || '');
-  const [governorate, setGovernorate] = useState('القاهرة');
+  const [governorate, setGovernorate] = useState(selectedGovernorate || 'القاهرة');
   const [city, setCity] = useState('');
   const [address, setAddress] = useState('');
   const [notes, setNotes] = useState('');
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('cash_on_delivery');
+
+  useEffect(() => {
+    if (selectedGovernorate && selectedGovernorate !== governorate) {
+      setGovernorate(selectedGovernorate);
+    }
+  }, [selectedGovernorate]);
+
+  const handleGovernorateChange = (newGov: string) => {
+    setGovernorate(newGov);
+    setSelectedGovernorate(newGov);
+  };
 
   // Coupon Code state
   const [couponInput, setCouponInput] = useState('');
@@ -116,7 +129,10 @@ export const CheckoutPage: React.FC = () => {
 
       const defaultAddr = currentUser.addresses?.find(a => a.is_default) || currentUser.addresses?.[0];
       if (defaultAddr) {
-        if (defaultAddr.governorate) setGovernorate(defaultAddr.governorate);
+        if (defaultAddr.governorate) {
+          setGovernorate(defaultAddr.governorate);
+          setSelectedGovernorate(defaultAddr.governorate);
+        }
         if (defaultAddr.city && !city) setCity(defaultAddr.city);
         if (defaultAddr.street_address && !address) {
           const fullAddr = [
@@ -130,7 +146,10 @@ export const CheckoutPage: React.FC = () => {
         if (defaultAddr.notes && !notes) setNotes(defaultAddr.notes);
       } else if (currentUser.address && !address) {
         setAddress(currentUser.address);
-        if (currentUser.governorate) setGovernorate(currentUser.governorate);
+        if (currentUser.governorate) {
+          setGovernorate(currentUser.governorate);
+          setSelectedGovernorate(currentUser.governorate);
+        }
         if (currentUser.city) setCity(currentUser.city);
       }
     }
@@ -168,6 +187,20 @@ export const CheckoutPage: React.FC = () => {
     if (!address.trim() || address.trim().length < 10) {
       setErrorMsg('يرجى إدخال العنوان التفصيلي بدقة (الشارع، رقم العمارة، رقم الشقة، علامة مميزة).');
       return;
+    }
+
+    // التحقق من توافر المخزون وحدود الطلبات لكل صنف
+    for (const item of cartItems) {
+      const maxLimit = getProductMaxOrderLimit(item.product, item.variant);
+      const stock = item.variant ? item.variant.stock_quantity : item.product.stock_quantity;
+      if (stock <= 0) {
+        setErrorMsg(`عفواً يا فندم، المنتج "${item.product.name_ar}" نفد من المخزن حالياً. يرجى حذفه للمتابعة.`);
+        return;
+      }
+      if (item.quantity > maxLimit) {
+        setErrorMsg(`الكمية المطلوبة من "${item.product.name_ar}" (${item.quantity} قطع) تتجاوز الحد المسموح به (${maxLimit} قطع) أو المتاح بالمخزن.`);
+        return;
+      }
     }
 
     setIsSubmitting(true);
@@ -276,13 +309,24 @@ export const CheckoutPage: React.FC = () => {
                   </label>
                   <select
                     value={governorate}
-                    onChange={(e) => setGovernorate(e.target.value)}
-                    className="w-full text-xs p-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:border-gold-500 cursor-pointer"
+                    onChange={(e) => handleGovernorateChange(e.target.value)}
+                    className="w-full text-xs p-3 border border-gray-200 rounded-xl bg-white focus:outline-none focus:border-gold-500 cursor-pointer font-bold"
                   >
-                    {EGYPTIAN_GOVERNORATES.map((gov) => (
-                      <option key={gov} value={gov}>{gov}</option>
-                    ))}
+                    {dbStore.getGovernorateShippingRates()
+                      .filter(r => r.is_active)
+                      .map((gov) => (
+                        <option key={gov.id} value={gov.name_ar}>{gov.name_ar}</option>
+                      ))}
                   </select>
+                  {(() => {
+                    const currentRate = dbStore.getGovernorateShippingRates().find(r => r.name_ar === governorate);
+                    if (!currentRate) return null;
+                    return (
+                      <span className="block text-[11px] text-gray-500 mt-1.5 font-medium">
+                        ⚡ مدة التوصيل: <strong className="text-gray-900">{currentRate.estimated_days}</strong> | الشحن: <strong className="text-emerald-700">{shippingFee === 0 ? 'مجاني 🎉' : `${currentRate.fee_egp} ج.م`}</strong>
+                      </span>
+                    );
+                  })()}
                 </div>
 
                 <div>

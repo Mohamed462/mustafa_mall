@@ -1,7 +1,7 @@
 import React, { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Product } from '../../types';
-import { useCart } from '../../context/CartContext';
+import { useCart, getProductMaxOrderLimit } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { formatCurrencyEGP, calculateDiscountPercent } from '../../utils/formatters';
 import { handleImageError, PRODUCT_FALLBACK_IMAGE } from '../../utils/imageUtils';
@@ -13,14 +13,16 @@ interface ProductCardProps {
 }
 
 export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
-  const { addToCart } = useCart();
+  const { addToCart, cartItems } = useCart();
   const { isInWishlist, toggleWishlist } = useWishlist();
   const [addedAnimation, setAddedAnimation] = useState(false);
   const [isQuickViewOpen, setIsQuickViewOpen] = useState(false);
   const [isHovered, setIsHovered] = useState(false);
 
   const discountPercent = calculateDiscountPercent(product.original_price_egp, product.price_egp);
-  const isOutOfStock = product.stock_quantity <= 0;
+  const maxLimit = getProductMaxOrderLimit(product);
+  const isOutOfStock = product.stock_quantity <= 0 || maxLimit <= 0;
+  const isLowStock = !isOutOfStock && product.stock_quantity <= (product.low_stock_threshold || 5);
   const inWishlist = isInWishlist(product.id);
   const hasVariants = product.variants && product.variants.length > 0;
   
@@ -66,11 +68,18 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
             </div>
           )}
 
+          {/* Low Stock Badge */}
+          {isLowStock && !isOutOfStock && (
+            <div className="absolute bottom-2 start-2 z-10 bg-amber-500/90 text-white font-bold text-[9px] px-1.5 py-0.5 rounded-md shadow-xs">
+              متبقي {product.stock_quantity} بس!
+            </div>
+          )}
+
           {/* Out of Stock Overlay */}
           {isOutOfStock && (
-            <div className="absolute inset-0 bg-[#04383f]/70 z-20 flex items-center justify-center">
+            <div className="absolute inset-0 bg-[#04383f]/75 z-20 flex items-center justify-center">
               <span className="bg-[#04383f] text-white text-[11px] font-bold px-2.5 py-1 rounded border border-[#003746]">
-                نفد من المخزن
+                نفد من المخزن مؤقتاً
               </span>
             </div>
           )}

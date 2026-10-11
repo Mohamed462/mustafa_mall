@@ -30,41 +30,41 @@ export const PrintCenterHighlight: React.FC = () => {
           <div className="lg:col-span-7 space-y-4 text-right">
             <div className="inline-flex items-center gap-2 bg-white/10 border border-white/20 text-[#00D2D3] px-3.5 py-1 rounded-full text-xs font-bold">
               <Printer className="w-3.5 h-3.5" />
-              <span>الركن التخصصي للطباعة الرقمية والتجليد المذهب</span>
+              <span>مركز الطباعة وتصوير الورق</span>
             </div>
 
             <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-white leading-tight">
-              خدمات طباعة متكاملة للطلاب، الباحثين، والمؤسسات
+              اطبع مذكراتك، أبحاثك وكروتك.. هاتها تطبع في ثواني!
             </h2>
 
             <p className="text-xs sm:text-sm text-gray-200 leading-relaxed max-w-xl">
-              نوفر أحدث خطوط الإنتاج الرقمية: طباعة وتجليد الرسائل الجامعية هارد كفر مذهب، كروت العمل الفاخرة، البانرات الإعلانية، واللوحات الهندسية بدقة ليزر مع تسليم فوري وحساب أوتوماتيكي للتكلفة.
+              اطبع ورقك بأعلى جودة ليزر وتجليد فاخر هارد كفر مذهب، مع تسليم سريع وحساب فوري للتكلفة ع الملليم ومن غير ما تقف في طوابير!
             </p>
 
             {/* Checklist */}
             <div className="grid grid-cols-2 gap-3 pt-2 text-xs text-gray-100">
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-[#00D2D3] shrink-0" />
-                <span>أعلى دقة وضوح ليزر 1200 DPI</span>
+                <span>أعلى وضوح ليزر وطباعة حبر أصلية</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-[#00D2D3] shrink-0" />
-                <span>تجليد كعب حراري وبصمة ذهبية فاخرة</span>
+                <span>تجليد فاخر هارد كفر وبصمة ذهبية</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-[#00D2D3] shrink-0" />
-                <span>سرية وأمان تام لكافة المستندات والأبحاث</span>
+                <span>سرية وأمان كامل لملفاتك وأبحاثك</span>
               </div>
               <div className="flex items-center gap-2">
                 <CheckCircle2 className="w-4 h-4 text-[#00D2D3] shrink-0" />
-                <span>حساب تكلفة فوري ورفع الملفات أونلاين</span>
+                <span>حساب فوري للتكلفة وإرسال ع الواتس فوراً</span>
               </div>
             </div>
 
             <div className="pt-4 flex flex-wrap gap-3">
               <Link to="/print-center">
                 <TextureButton variant="accent" size="lg">
-                  <span>احسب تكلفة طلبك واطلب الطباعة فوراً</span>
+                  <span>احسب تكلفة طباعتك واطلب فوراً</span>
                   <ArrowLeft className="w-4 h-4 rtl:rotate-0 ltr:rotate-180" />
                 </TextureButton>
               </Link>

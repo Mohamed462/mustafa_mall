@@ -53,11 +53,11 @@ export const HomePage: React.FC = () => {
         return (
           <CuratedProductRow 
             key={sec.id}
-            title={sec.title_ar || "عروض حصرية لفترة محدودة"}
-            subtitle={sec.subtitle_ar || "توفير حقيقي على منتجات مختارة مع ضمان الجودة الكاملة"}
+            title={sec.title_ar && sec.title_ar !== 'عروض وتخفيضات مميزة' && sec.title_ar !== 'عروض حصرية لفترة محدودة' ? sec.title_ar : "عروض متتفوتش"}
+            subtitle={sec.subtitle_ar && !sec.subtitle_ar.includes('توفير حقيقي') ? sec.subtitle_ar : "أسعار نزلت على الأرض وخصومات لفترة محدودة!"}
             products={offersProducts.slice(0, 5)}
             viewAllLink="/offers"
-            badge="خصومات زمردية"
+            badge="توفير يفرق"
           />
         );
 
@@ -65,10 +65,11 @@ export const HomePage: React.FC = () => {
         return (
           <CuratedProductRow 
             key={sec.id}
-            title={sec.title_ar || "أحدث المنتجات في مول المصطفى"}
-            subtitle={sec.subtitle_ar || "تشكيلات جديدة ومتميزة وصلت حديثاً إلى رفوف المتجر"}
+            title={sec.title_ar && !sec.title_ar.includes('أحدث الإضافات') && !sec.title_ar.includes('أحدث المنتجات') ? sec.title_ar : "لسه واصل طازة"}
+            subtitle={sec.subtitle_ar && !sec.subtitle_ar.includes('منتجات جديدة') && !sec.subtitle_ar.includes('تشكيلات جديدة') ? sec.subtitle_ar : "أحدث بضاعة نزلت الرفوف وجاهزة للطلب فوراً!"}
             products={newestProducts}
             viewAllLink="/shop"
+            badge="جديد المول"
           />
         );
 
@@ -76,10 +77,11 @@ export const HomePage: React.FC = () => {
         return (
           <CuratedProductRow 
             key={sec.id}
-            title={sec.title_ar || "اختيارات مول المصطفى الأكثر طلباً"}
-            subtitle={sec.subtitle_ar || "المنتجات الأعلى طلباً والأكثر ثقة من عملائنا في مختلف المحافظات"}
+            title={sec.title_ar && !sec.title_ar.includes('اختيارات مول المصطفى') ? sec.title_ar : "الأكتر طلباً ومكسر الدنيا"}
+            subtitle={sec.subtitle_ar && !sec.subtitle_ar.includes('الأعلى طلباً') ? sec.subtitle_ar : "المنتجات اللي الكل بيطلبها وعليها إقبال كبير!"}
             products={bestSellers}
             viewAllLink="/shop"
+            badge="الأكتر مبيعاً"
           />
         );
 

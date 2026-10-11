@@ -1,5 +1,5 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
-import { StoreSettings, Banner, Category } from '../types';
+import { StoreSettings, Banner, Category, GovernorateShippingRate } from '../types';
 import { dbStore } from '../services/dbStore';
 
 interface StoreSettingsContextType {
@@ -8,6 +8,7 @@ interface StoreSettingsContextType {
   categories: Category[];
   refreshData: () => void;
   updateSettings: (newSettings: Partial<StoreSettings>) => void;
+  updateShippingRates: (rates: GovernorateShippingRate[]) => void;
 }
 
 const StoreSettingsContext = createContext<StoreSettingsContextType | undefined>(undefined);
@@ -23,8 +24,23 @@ export const StoreSettingsProvider: React.FC<{ children: React.ReactNode }> = ({
     setCategories(dbStore.getCategories());
   };
 
+  useEffect(() => {
+    const handleUpdate = () => refreshData();
+    window.addEventListener('al_mostafa_db_updated', handleUpdate);
+    window.addEventListener('al_mostafa_shipping_updated', handleUpdate);
+    return () => {
+      window.removeEventListener('al_mostafa_db_updated', handleUpdate);
+      window.removeEventListener('al_mostafa_shipping_updated', handleUpdate);
+    };
+  }, []);
+
   const updateSettings = (newSettings: Partial<StoreSettings>) => {
     const updated = dbStore.updateSettings(newSettings);
+    setSettings({ ...updated });
+  };
+
+  const updateShippingRates = (rates: GovernorateShippingRate[]) => {
+    const updated = dbStore.updateGovernorateShippingRates(rates);
     setSettings({ ...updated });
   };
 
@@ -35,6 +51,7 @@ export const StoreSettingsProvider: React.FC<{ children: React.ReactNode }> = ({
       categories,
       refreshData,
       updateSettings,
+      updateShippingRates,
     }}>
       {children}
     </StoreSettingsContext.Provider>

@@ -369,7 +369,7 @@ export const AuthModal: React.FC = () => {
 
           <div className="pt-2 text-center text-[11px] text-gray-500">
             <span>هل تواجه مشكلة في الدخول؟ </span>
-            <a href="https://wa.me/201023456789" target="_blank" rel="noopener noreferrer" className="text-mall-900 font-bold hover:underline">
+            <a href="https://wa.me/201017297414" target="_blank" rel="noopener noreferrer" className="text-mall-900 font-bold hover:underline">
               تواصل مع الدعم الفني
             </a>
           </div>

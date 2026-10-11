@@ -48,10 +48,13 @@ const AdminStaffPage = lazy(() => import('./pages/admin/AdminStaffPage').then(m 
 const AdminAnalyticsPage = lazy(() => import('./pages/admin/AdminAnalyticsPage').then(m => ({ default: m.AdminAnalyticsPage })));
 const AdminSettingsPage = lazy(() => import('./pages/admin/AdminSettingsPage').then(m => ({ default: m.AdminSettingsPage })));
 const AdminActivityLogsPage = lazy(() => import('./pages/admin/AdminActivityLogsPage').then(m => ({ default: m.AdminActivityLogsPage })));
+import { ScrollToTop } from './components/common/ScrollToTop';
 
 export const App: React.FC = () => {
   return (
-    <Routes>
+    <>
+      <ScrollToTop />
+      <Routes>
       {/* Storefront Layout & Routes */}
       <Route element={<StorefrontLayout />}>
         <Route path="/" element={<HomePage />} />
@@ -119,5 +122,6 @@ export const App: React.FC = () => {
         <Route path="activity-logs" element={<AdminActivityLogsPage />} />
       </Route>
     </Routes>
+    </>
   );
 };

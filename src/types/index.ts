@@ -87,6 +87,7 @@ export interface Product {
   cost_price_egp?: number;
   stock_quantity: number;
   low_stock_threshold: number;
+  max_order_quantity?: number;
   is_active: boolean;
   is_featured: boolean;
   allow_backorder: boolean;
@@ -272,6 +273,14 @@ export interface HomepageSection {
   is_enabled?: boolean;
 }
 
+export interface GovernorateShippingRate {
+  id: string;
+  name_ar: string;
+  fee_egp: number;
+  estimated_days: string;
+  is_active: boolean;
+}
+
 export interface StoreSettings {
   id: string;
   store_name_ar: string;
@@ -287,6 +296,8 @@ export interface StoreSettings {
   announcement_text_ar: string;
   is_announcement_enabled: boolean;
   category_display_style?: 'images_only' | 'overlay' | 'minimal';
+  governorate_shipping_rates?: GovernorateShippingRate[];
+  google_client_id?: string;
 }
 
 export interface Coupon {

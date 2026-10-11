@@ -4,7 +4,7 @@
     <meta charset="UTF-8" />
     <link rel="icon" type="image/png" href="/favicon.png" />
     <link rel="shortcut icon" href="/favicon.ico" />
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=5.0, viewport-fit=cover" />
     <meta name="theme-color" content="#08606B" />
     <title>مول المصطفى | Al Mostafa Mall — كل ما تحتاجه تحت سقف واحد</title>
     <meta name="description" content="مول المصطفى — الوجهة الأولى للتسوق والطباعة في مصر. إلكترونيات، مستلزمات دراسية ومنزلية، وأكبر مركز طباعة رقمية وهندسية وتجليد فاخر." />
@@ -14,9 +14,13 @@
     <link rel="preconnect" href="https://images.unsplash.com" crossorigin>
     <link rel="dns-prefetch" href="https://images.unsplash.com">
     <link href="https://fonts.googleapis.com/css2?family=Alexandria:wght@300;400;500;600;700;800&family=Instrument+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+    <!-- Google Identity Services (Sign in with Google) -->
+    <script src="https://accounts.google.com/gsi/client" async defer></script>
   </head>
   <body class="font-arabic bg-[#f3f4f6] text-[#11151a] antialiased selection:bg-[#00D2D3] selection:text-[#08606B]">
-    <div id="root"></div>
+    <!-- FullMark Architectural Drafting Grid Background -->
+    <div class="drafting-grid" aria-hidden="true"></div>
+    <div id="root" class="relative z-1"></div>
     <script type="module" src="/src/main.tsx"></script>
   </body>
 </html>

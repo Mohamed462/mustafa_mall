@@ -128,7 +128,8 @@ export const ProductDetailPage: React.FC = () => {
   const originalPrice = product.original_price_egp;
   const discountPercent = calculateDiscountPercent(originalPrice, currentPrice);
   const activeStock = selectedVariant ? selectedVariant.stock_quantity : product.stock_quantity;
-  const isOutOfStock = activeStock <= 0;
+  const maxOrderLimit = Math.max(0, Math.min(activeStock, product.max_order_quantity && product.max_order_quantity > 0 ? product.max_order_quantity : 10));
+  const isOutOfStock = activeStock <= 0 || maxOrderLimit <= 0;
   const isLowStock = !isOutOfStock && activeStock <= product.low_stock_threshold;
   const inWishlist = isInWishlist(product.id);
 
@@ -138,7 +139,7 @@ export const ProductDetailPage: React.FC = () => {
 
   const handleAddToCart = () => {
     if (isOutOfStock) return;
-    addToCart(product, quantity, selectedVariant);
+    addToCart(product, Math.min(quantity, maxOrderLimit), selectedVariant);
     setAddedSuccess(true);
     setTimeout(() => setAddedSuccess(false), 2000);
   };
@@ -269,17 +270,17 @@ export const ProductDetailPage: React.FC = () => {
                 <div className="text-left">
                   {isOutOfStock ? (
                     <span className="inline-block bg-slate-800 text-white text-xs font-bold px-3 py-1 rounded-full">
-                      غير متوفر حالياً
+                      نفد من المخزن مؤقتاً
                     </span>
                   ) : isLowStock ? (
                     <span className="inline-flex items-center gap-1 bg-amber-50 text-amber-900 text-xs font-bold px-3 py-1 rounded-full border border-amber-200">
                       <AlertCircle className="w-3.5 h-3.5 text-amber-600" />
-                      <span>متبقي {activeStock} فقط!</span>
+                      <span>متبقي {activeStock} قطع بس!</span>
                     </span>
                   ) : (
                     <span className="inline-flex items-center gap-1 bg-emerald-50 text-emerald-800 text-xs font-bold px-3 py-1 rounded-full border border-emerald-200">
                       <Check className="w-3.5 h-3.5 text-emerald-600" />
-                      <span>متوفر في المخزون</span>
+                      <span>متوفر في المخزن (أقصى طلب: {maxOrderLimit} قطع)</span>
                     </span>
                   )}
                 </div>
@@ -336,10 +337,11 @@ export const ProductDetailPage: React.FC = () => {
                   </span>
                   <button
                     type="button"
-                    disabled={quantity >= activeStock}
-                    onClick={() => setQuantity(Math.min(activeStock, quantity + 1))}
+                    disabled={quantity >= maxOrderLimit}
+                    onClick={() => setQuantity(Math.min(maxOrderLimit, quantity + 1))}
                     className="p-3 text-slate-600 hover:bg-slate-200 disabled:opacity-30 transition-colors cursor-pointer"
                     aria-label="زيادة الكمية"
+                    title={quantity >= maxOrderLimit ? `الحد الأقصى للطلب ${maxOrderLimit} قطع` : 'زيادة الكمية'}
                   >
                     <Plus className="w-4 h-4" />
                   </button>

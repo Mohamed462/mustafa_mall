@@ -57,13 +57,13 @@ export const CustomerReviewsSection: React.FC = () => {
       <div className="text-center max-w-2xl mx-auto mb-8">
         <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#08606B] mb-2 bg-[rgba(8,96,107,0.08)] px-3 py-1 rounded-full border border-[rgba(8,96,107,0.2)]">
           <ThumbsUp className="w-3.5 h-3.5 text-[#00D2D3]" />
-          <span>تجارب حقيقية موثقة</span>
+          <span>كلام زباينّا</span>
         </div>
         <h2 className="text-2xl sm:text-3xl font-black text-[#04383f] tracking-tight">
-          ماذا يقول عملاؤنا عن مول المصطفى؟
+          رأي الناس فينا
         </h2>
         <p className="text-xs sm:text-sm text-[#687280] mt-1">
-          أكثر من 50,000 عميل سعيد في 27 محافظة مصرية يثقون في جودة منتجاتنا وسرعة خدماتنا
+          كلام حقيقي وتجارب ناس جربت واشترت مننا من كل حتة في مصر
         </p>
       </div>
 

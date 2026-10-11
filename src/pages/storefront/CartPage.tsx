@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { Link, useNavigate } from 'react-router-dom';
-import { useCart } from '../../context/CartContext';
+import { useCart, getProductMaxOrderLimit } from '../../context/CartContext';
 import { useStoreSettings } from '../../context/StoreSettingsContext';
 import { Breadcrumbs } from '../../components/common/Breadcrumbs';
 import { formatCurrencyEGP } from '../../utils/formatters';
@@ -29,14 +29,16 @@ export const CartPage: React.FC = () => {
     total, 
     appliedCoupon, 
     applyCoupon, 
-    removeCoupon 
+    removeCoupon,
+    selectedGovernorate
   } = useCart();
   const { settings } = useStoreSettings();
 
   const [couponCode, setCouponCode] = useState('');
   const [couponMessage, setCouponMessage] = useState<{ text: string; isError: boolean } | null>(null);
 
-  const freeThreshold = settings.free_shipping_threshold_egp;
+  const rawThreshold = Number(settings.free_shipping_threshold_egp);
+  const freeThreshold = (rawThreshold > 0 && rawThreshold !== 500) ? rawThreshold : 750;
   const progressPercent = Math.min(100, Math.round((subtotal / freeThreshold) * 100));
   const remainingForFree = Math.max(0, freeThreshold - subtotal);
 
@@ -150,36 +152,59 @@ export const CartPage: React.FC = () => {
 
                   <div className="flex items-center justify-between sm:justify-end gap-6 w-full sm:w-auto">
                     {/* Quantity controls */}
-                    <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden bg-gray-50">
-                      <button
-                        type="button"
-                        onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.variant?.id)}
-                        className="p-2 text-gray-600 hover:bg-gray-200"
-                      >
-                        <Minus className="w-3.5 h-3.5" />
-                      </button>
-                      <span className="px-3 text-xs font-black text-gray-900">
-                        {item.quantity}
-                      </span>
-                      <button
-                        type="button"
-                        onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.variant?.id)}
-                        className="p-2 text-gray-600 hover:bg-gray-200"
-                      >
-                        <Plus className="w-3.5 h-3.5" />
-                      </button>
-                    </div>
+                    {(() => {
+                      const maxLimit = getProductMaxOrderLimit(item.product, item.variant);
+                      const isAtMax = item.quantity >= maxLimit;
+
+                      return (
+                        <div className="flex items-center gap-2">
+                          <div className="flex items-center border border-gray-200 rounded-xl overflow-hidden bg-gray-50">
+                            <button
+                              type="button"
+                              onClick={() => updateQuantity(item.product.id, item.quantity - 1, item.variant?.id)}
+                              className="p-2 text-gray-600 hover:bg-gray-200 cursor-pointer"
+                              aria-label="تقليل الكمية"
+                            >
+                              <Minus className="w-3.5 h-3.5" />
+                            </button>
+                            <span className="px-3 text-xs font-black text-gray-900">
+                              {item.quantity}
+                            </span>
+                            <button
+                              type="button"
+                              disabled={isAtMax}
+                              onClick={() => updateQuantity(item.product.id, item.quantity + 1, item.variant?.id)}
+                              className={`p-2 transition-colors ${
+                                isAtMax 
+                                  ? 'bg-gray-100 text-gray-300 cursor-not-allowed' 
+                                  : 'text-gray-600 hover:bg-gray-200 cursor-pointer'
+                              }`}
+                              aria-label="زيادة الكمية"
+                              title={isAtMax ? `أقصى كمية مسموح بها: ${maxLimit}` : 'زيادة الكمية'}
+                            >
+                              <Plus className="w-3.5 h-3.5" />
+                            </button>
+                          </div>
+
+                          {isAtMax && (
+                            <span className="text-[10px] text-amber-700 bg-amber-50 px-2 py-0.5 rounded-lg border border-amber-200 font-bold">
+                              الحد الأقصى: {maxLimit}
+                            </span>
+                          )}
+                        </div>
+                      );
+                    })()}
 
                     {/* Total Price & Delete */}
                     <div className="text-left flex items-center gap-4">
-                      <span className="text-sm font-black text-mall-900">
+                      <span className="text-sm font-black text-[#04383f]">
                         {formatCurrencyEGP(itemTotal)}
                       </span>
                       <button
                         type="button"
                         onClick={() => removeFromCart(item.product.id, item.variant?.id)}
-                        className="text-gray-400 hover:text-red-500 p-1 transition-colors"
-                        title="حذف"
+                        className="text-gray-400 hover:text-red-500 p-1 transition-colors cursor-pointer"
+                        title="حذف من السلة"
                       >
                         <Trash2 className="w-4 h-4" />
                       </button>
@@ -266,10 +291,10 @@ export const CartPage: React.FC = () => {
               )}
 
               <div className="flex items-center justify-between">
-                <span>مصاريف الشحن:</span>
+                <span>مصاريف الشحن ({selectedGovernorate || 'القاهرة'}):</span>
                 <span className="font-bold text-gray-900">
                   {shippingFee === 0 ? (
-                    <span className="text-green-600 font-bold">مجاني</span>
+                    <span className="text-green-600 font-bold">مجاني 🎉</span>
                   ) : (
                     formatCurrencyEGP(shippingFee)
                   )}

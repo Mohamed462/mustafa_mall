@@ -57,13 +57,13 @@ export const CategoryDiscoveryGrid: React.FC<CategoryDiscoveryGridProps> = ({ ca
         <div>
           <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#08606B] mb-1">
             <Sparkles className="w-3.5 h-3.5 text-[#00D2D3]" />
-            <span>تسوق حسب الأقسام الرئيسية</span>
+            <span>على الفرازة</span>
           </div>
           <h2 className="text-2xl sm:text-3xl font-black text-[#04383f] tracking-tight">
-            أقسام مول المصطفى
+            أقسام المول
           </h2>
           <p className="text-xs sm:text-sm text-[#687280] mt-0.5">
-            تصفح تشكيلاتنا الكاملة في أقسام متخصصة تلبي كافة احتياجات الأسرة المصرية
+            كل حاجة متقسمة بروقان.. نقي قسمك وادخل تفرّج!
           </p>
         </div>
 
@@ -71,7 +71,7 @@ export const CategoryDiscoveryGrid: React.FC<CategoryDiscoveryGridProps> = ({ ca
           to="/shop" 
           className="inline-flex items-center gap-1.5 text-xs sm:text-sm font-bold text-[#04383f] hover:text-[#08606B] transition-colors group self-start sm:self-end"
         >
-          <span>تصفح كافة الأقسام</span>
+          <span>شوف كل الأقسام</span>
           <ArrowLeft className="w-4 h-4 transition-transform group-hover:-translate-x-1" />
         </Link>
       </div>

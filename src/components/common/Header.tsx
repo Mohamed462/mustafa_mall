@@ -1,10 +1,10 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import { Link, useNavigate } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { useStoreSettings } from '../../context/StoreSettingsContext';
 import { useAuth } from '../../context/AuthContext';
-import { AnnouncementBar } from './AnnouncementBar';
 import { CategoryMegaMenu } from './CategoryMegaMenu';
 import { CartDrawer } from '../cart/CartDrawer';
 import { dbStore } from '../../services/dbStore';
@@ -24,12 +24,13 @@ import {
   Printer, 
   Percent, 
   ShieldCheck, 
-  ExternalLink 
+  ExternalLink,
+  Check 
 } from 'lucide-react';
 
 export const Header: React.FC = () => {
   const navigate = useNavigate();
-  const { itemCount } = useCart();
+  const { itemCount, selectedGovernorate, setSelectedGovernorate } = useCart();
   const { wishlistCount } = useWishlist();
   const { settings, categories } = useStoreSettings();
   const { isAuthenticated, currentUser, isAdmin, openAuthModal } = useAuth();
@@ -38,7 +39,7 @@ export const Header: React.FC = () => {
   const [isCartDrawerOpen, setIsCartDrawerOpen] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
-  const [selectedGovernorate, setSelectedGovernorate] = useState('القاهرة والجيزة');
+  const [govSearch, setGovSearch] = useState('');
 
   // Dynamic Navigation Items
   const [navItems, setNavItems] = useState<NavItem[]>(() => dbStore.getNavItems());
@@ -65,6 +66,14 @@ export const Header: React.FC = () => {
   const [suggestions, setSuggestions] = useState<Product[]>([]);
   const searchContainerRef = useRef<HTMLDivElement>(null);
   const mobileSearchContainerRef = useRef<HTMLDivElement>(null);
+  const locationDropdownRef = useRef<HTMLDivElement>(null);
+
+  const rawThreshold = Number(settings.free_shipping_threshold_egp);
+  const freeThreshold = (rawThreshold > 0 && rawThreshold !== 500) ? rawThreshold : 750;
+  const activeGovs = dbStore.getGovernorateShippingRates().filter(g => g.is_active);
+  const filteredGovs = activeGovs.filter(gov => 
+    !govSearch.trim() || gov.name_ar.includes(govSearch.trim())
+  );
 
   // Search debounce and auto-suggestions
   useEffect(() => {
@@ -85,7 +94,7 @@ export const Header: React.FC = () => {
     setIsSearching(true);
   }, [searchQuery]);
 
-  // Click outside to dismiss search
+  // Click outside to dismiss search and desktop location dropdown
   useEffect(() => {
     const handleClickOutside = (e: MouseEvent) => {
       const target = e.target as Node;
@@ -94,10 +103,15 @@ export const Header: React.FC = () => {
       if (!isInsideDesktop && !isInsideMobile) {
         setIsSearching(false);
       }
+
+      const isInsideLocation = locationDropdownRef.current?.contains(target);
+      if (!isInsideLocation && isLocationModalOpen) {
+        setIsLocationModalOpen(false);
+      }
     };
     document.addEventListener('mousedown', handleClickOutside);
     return () => document.removeEventListener('mousedown', handleClickOutside);
-  }, []);
+  }, [isLocationModalOpen]);
 
   const handleSearchSubmit = (e: React.FormEvent) => {
     e.preventDefault();
@@ -115,14 +129,11 @@ export const Header: React.FC = () => {
 
   return (
     <header className="sticky top-0 z-40 bg-white/95 backdrop-blur-md text-[#04383f] shadow-editorial border-b border-[rgba(17,21,26,0.11)]">
-      {/* Top Promotional Bar */}
-      <AnnouncementBar />
-
       {/* Main Bar */}
-      <div className="max-w-7xl mx-auto px-4 py-3">
+      <div className="max-w-7xl mx-auto px-4 py-2 sm:py-3">
         <div className="flex items-center justify-between gap-4">
           {/* Right Section: Mobile Menu Trigger + Logo */}
-          <div className="flex items-center gap-3 shrink-0">
+          <div className="flex items-center gap-2 sm:gap-3 shrink-0">
             {/* Mobile Hamburger Button */}
             <button
               type="button"
@@ -134,35 +145,138 @@ export const Header: React.FC = () => {
             </button>
 
             {/* Official Brand Logo */}
-            <Link to="/" className="flex items-center gap-2.5 sm:gap-3 group shrink-0">
+            <Link to="/" className="flex items-center group shrink-0 py-0.5" aria-label="الرئيسية - مول المصطفى">
               <img 
                 src="/brand-logo-transparent.webp" 
-                alt="مول المصطفى - Al Mostafa Mall" 
-                className="h-11 sm:h-14 w-auto object-contain transition-transform group-hover:scale-105 drop-shadow-sm"
+                alt="مول المصطفى" 
+                className="h-14 sm:h-18 md:h-20 w-auto object-contain transition-transform group-hover:scale-105 drop-shadow-sm"
               />
-              <div className="flex flex-col text-right">
-                <span className="font-sans font-black text-base sm:text-lg text-[#04383f] tracking-tight leading-none group-hover:text-[#08606B] transition-colors">
-                  مول المصطفى
-                </span>
-                <span className="text-[9px] sm:text-[10px] text-[#08606B] font-bold tracking-wider">
-                  AL MOSTAFA MALL
-                </span>
-              </div>
             </Link>
 
-            {/* Delivery Location Trigger (Desktop) */}
-            <button
-              type="button"
-              onClick={() => setIsLocationModalOpen(true)}
-              className="hidden xl:flex items-center gap-2 text-xs text-[#04383f] hover:text-[#08606B] bg-[#f3f4f6] px-3 py-1.5 rounded-lg border border-[rgba(17,21,26,0.11)] transition-colors me-2"
-            >
-              <MapPin className="w-3.5 h-3.5 text-[#08606B]" />
-              <div className="text-right">
-                <span className="block text-[10px] text-[#687280]">التوصيل إلى:</span>
-                <span className="font-bold text-[#04383f]">{selectedGovernorate}</span>
-              </div>
-              <ChevronDown className="w-3.5 h-3.5 text-[#687280]" />
-            </button>
+            {/* Delivery Location Trigger & Desktop Popover (عرض عادي) */}
+            <div className="relative hidden lg:block" ref={locationDropdownRef}>
+              <button
+                type="button"
+                onClick={() => setIsLocationModalOpen(!isLocationModalOpen)}
+                className="flex items-center gap-2 text-xs text-[#04383f] hover:text-[#08606B] bg-white hover:bg-slate-50 px-3 py-1.5 rounded-xl border border-slate-200 border-b-2 border-b-[#08606B] hover:border-b-[#00D2D3] shadow-xs hover:shadow-sm transition-all me-2 cursor-pointer"
+                title="اختر وجهة التوصيل"
+              >
+                <div className="relative flex items-center justify-center">
+                  <MapPin className="w-3.5 h-3.5 text-[#08606B]" />
+                  <span className="absolute -top-0.5 -end-0.5 w-1.5 h-1.5 bg-[#00D2D3] rounded-full animate-ping" />
+                </div>
+                <div className="text-right">
+                  <span className="block text-[10px] text-[#687280]">التوصيل إلى:</span>
+                  <span className="font-bold text-[#04383f] line-clamp-1 max-w-[125px]">{selectedGovernorate || 'القاهرة'}</span>
+                </div>
+                <ChevronDown className="w-3.5 h-3.5 text-[#687280]" />
+              </button>
+
+              {/* Desktop Dropdown: Anchored directly below the button (No screen cut-off!) */}
+              {isLocationModalOpen && (
+                <div className="absolute top-full start-0 mt-2 w-80 bg-white rounded-2xl shadow-2xl border border-slate-200 z-50 overflow-hidden text-right animate-scale-up p-4">
+                  <div className="flex items-center justify-between pb-2.5 border-b border-slate-100 mb-2.5">
+                    <div className="flex items-center gap-2">
+                      <div className="w-7 h-7 rounded-lg bg-[rgba(8,96,107,0.1)] text-[#08606B] flex items-center justify-center shrink-0">
+                        <MapPin className="w-4 h-4 text-[#08606B]" />
+                      </div>
+                      <div>
+                        <h4 className="text-xs font-black text-[#04383f]">تحديد محافظة التوصيل</h4>
+                        <span className="text-[10px] text-[#687280]">عرض عادي وسريع لكل المحافظات</span>
+                      </div>
+                    </div>
+                    <button
+                      type="button"
+                      onClick={() => setIsLocationModalOpen(false)}
+                      className="p-1 rounded-lg text-gray-400 hover:text-gray-700 hover:bg-gray-100 transition-colors cursor-pointer"
+                      aria-label="إغلاق القائمة"
+                    >
+                      <X className="w-4 h-4" />
+                    </button>
+                  </div>
+
+                  {/* Standard Select: عرض عادي */}
+                  <div className="mb-2.5">
+                    <label className="block text-[11px] font-bold text-gray-700 mb-1">
+                      اختر من القائمة المنسدلة:
+                    </label>
+                    <select
+                      value={selectedGovernorate || 'القاهرة'}
+                      onChange={(e) => {
+                        setSelectedGovernorate(e.target.value);
+                        setIsLocationModalOpen(false);
+                      }}
+                      className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-[#04383f] focus:outline-none focus:border-[#08606B] cursor-pointer"
+                    >
+                      {activeGovs.map(gov => (
+                        <option key={gov.id} value={gov.name_ar}>
+                          {gov.name_ar} (توصيل: {gov.estimated_days} - {gov.fee_egp} ج.م)
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {/* Search Filter */}
+                  <div className="relative mb-2">
+                    <input
+                      type="text"
+                      value={govSearch}
+                      onChange={(e) => setGovSearch(e.target.value)}
+                      placeholder="أو اكتب اسم المحافظة للبحث..."
+                      className="w-full text-xs py-2 px-7 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:border-[#08606B] font-bold"
+                    />
+                    <Search className="w-3.5 h-3.5 text-gray-400 absolute start-2 top-2.5 pointer-events-none" />
+                    {govSearch && (
+                      <button
+                        type="button"
+                        onClick={() => setGovSearch('')}
+                        className="absolute end-2 top-2 text-gray-400 hover:text-gray-600 text-xs"
+                      >
+                        ✕
+                      </button>
+                    )}
+                  </div>
+
+                  {/* Clean List View: عرض عادي - كل محافظة في سطر مرتب ومريح */}
+                  <div className="space-y-1 max-h-48 overflow-y-auto pe-1">
+                    {filteredGovs.map(gov => {
+                      const isSelected = (selectedGovernorate || 'القاهرة') === gov.name_ar;
+                      return (
+                        <button
+                          key={gov.id}
+                          type="button"
+                          onClick={() => {
+                            setSelectedGovernorate(gov.name_ar);
+                            setIsLocationModalOpen(false);
+                            setGovSearch('');
+                          }}
+                          className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition-all text-right cursor-pointer ${
+                            isSelected
+                              ? 'bg-[#04383f] text-white shadow-xs'
+                              : 'bg-[#f8fafb] hover:bg-[#e6f4f5] text-[#04383f] border border-transparent hover:border-[#08606B]/20'
+                          }`}
+                        >
+                          <div className="flex items-center gap-2">
+                            <MapPin className={`w-3.5 h-3.5 ${isSelected ? 'text-[#00D2D3]' : 'text-[#08606B]'}`} />
+                            <span>{gov.name_ar}</span>
+                          </div>
+                          <div className="flex items-center gap-1.5 text-[10px]">
+                            <span className={isSelected ? 'text-gray-300' : 'text-gray-500'}>
+                              {gov.estimated_days}
+                            </span>
+                            {isSelected && <Check className="w-3.5 h-3.5 text-[#00D2D3]" />}
+                          </div>
+                        </button>
+                      );
+                    })}
+                  </div>
+
+                  <div className="mt-2.5 p-2 rounded-xl bg-[#e6f4f5] border border-[#08606B]/20 text-[#08606B] text-[10px] font-bold text-center">
+                    🎉 شحن مجاني لأي طلب بقيمة أكثر من {freeThreshold} جنيه!
+                  </div>
+                </div>
+              )}
+            </div>
           </div>
 
           {/* Center Section: Prominent Search Bar (Desktop) */}
@@ -315,8 +429,23 @@ export const Header: React.FC = () => {
           </div>
         </div>
 
-        {/* Mobile Search Bar (Below Main Bar on small screens) */}
-        <div ref={mobileSearchContainerRef} className="lg:hidden mt-2 pt-2 border-t border-[rgba(17,21,26,0.11)] relative">
+        {/* Mobile Search Bar & Location (Below Main Bar on small screens) */}
+        <div ref={mobileSearchContainerRef} className="lg:hidden mt-2 pt-2 border-t border-[rgba(17,21,26,0.11)] relative space-y-1.5">
+          <div className="flex items-center justify-between text-xs px-1">
+            <button
+              type="button"
+              onClick={() => setIsLocationModalOpen(true)}
+              className="flex items-center gap-1.5 text-[11px] font-bold text-[#08606B] bg-[#08606B]/8 hover:bg-[#08606B]/15 px-3 py-1 rounded-full border border-[#08606B]/20 transition-all cursor-pointer"
+            >
+              <MapPin className="w-3 h-3 text-[#08606B]" />
+              <span>التوصيل إلى: <strong>{selectedGovernorate || 'القاهرة'}</strong></span>
+              <ChevronDown className="w-3 h-3 text-[#08606B]/70" />
+            </button>
+            <span className="text-[10px] text-emerald-700 font-bold bg-emerald-50 px-2 py-0.5 rounded-full border border-emerald-200">
+              ⚡ شحن لكل المحافظات
+            </span>
+          </div>
+
           <form onSubmit={handleSearchSubmit} className="relative w-full">
             <div className="flex items-center w-full bg-[#f3f4f6] rounded-lg overflow-hidden shadow-xs border border-[rgba(17,21,26,0.11)] focus-within:border-[#08606B] focus-within:bg-white transition-all">
               <input
@@ -625,53 +754,126 @@ export const Header: React.FC = () => {
         </div>
       )}
 
-      {/* Location Selector Modal */}
-      {isLocationModalOpen && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-          <div className="absolute inset-0 bg-black/60" onClick={() => setIsLocationModalOpen(false)} />
-          <div className="relative bg-white text-[#04383f] rounded-2xl max-w-sm w-full p-6 shadow-2xl z-10 text-right animate-scale-up">
-            <h3 className="text-base font-black text-[#04383f] mb-2 flex items-center gap-2">
-              <MapPin className="w-5 h-5 text-[#08606B]" />
-              <span>اختر وجهة التوصيل</span>
-            </h3>
-            <p className="text-xs text-[#687280] mb-4">
-              حدد محافظتك لتخصيص عروض الشحن وأوقات التسليم المتاحة.
-            </p>
-            <div className="space-y-2 mb-6 max-h-60 overflow-y-auto">
-              {[
-                'القاهرة والجيزة',
-                'الإسكندرية والساحل',
-                'محافظات الدلتا (المنصورة، طنطا، الزقازيق)',
-                'محافظات القناة (السويس، الإسماعيلية، بورسعيد)',
-                'محافظات الصعيد (بني سويف، المنيا، أسيوط، سوهاج)',
-                'باقي محافظات الجمهورية'
-              ].map((gov) => (
-                <button
-                  key={gov}
-                  type="button"
-                  onClick={() => {
-                    setSelectedGovernorate(gov);
-                    setIsLocationModalOpen(false);
-                  }}
-                  className={`w-full text-right p-3 rounded-lg text-xs font-bold transition-colors ${
-                    selectedGovernorate === gov 
-                      ? 'bg-[#04383f] text-white' 
-                      : 'bg-[#f3f4f6] hover:bg-[#EDE9DE] text-[#04383f]'
-                  }`}
-                >
-                  {gov}
-                </button>
-              ))}
+      {/* Mobile Location Selector Modal (Centered, Never cut off!) */}
+      {isLocationModalOpen && createPortal(
+        <div className="lg:hidden fixed inset-0 z-[100] flex items-center justify-center p-4 font-arabic">
+          <div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity" 
+            onClick={() => {
+              setIsLocationModalOpen(false);
+              setGovSearch('');
+            }} 
+          />
+          <div className="relative bg-white text-[#1A1A1A] rounded-2xl max-w-sm w-full p-4 shadow-2xl z-10 text-right my-auto max-h-[85vh] flex flex-col border border-slate-200 animate-scale-up">
+            <div className="flex items-center justify-between pb-2.5 border-b border-slate-100 mb-2.5 shrink-0">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-[rgba(8,96,107,0.1)] text-[#08606B] flex items-center justify-center shrink-0">
+                  <MapPin className="w-4 h-4 text-[#08606B]" />
+                </div>
+                <div>
+                  <h3 className="text-xs sm:text-sm font-black text-[#04383f]">
+                    هنوصلك فين في مصر؟ 📍
+                  </h3>
+                  <span className="text-[10px] text-gray-500">
+                    اختار محافظتك لتحديد مدة وتكلفة الشحن
+                  </span>
+                </div>
+              </div>
+              <button 
+                type="button" 
+                onClick={() => {
+                  setIsLocationModalOpen(false);
+                  setGovSearch('');
+                }} 
+                className="text-gray-400 hover:text-gray-700 p-1.5 rounded-lg hover:bg-gray-100 transition-colors cursor-pointer"
+                aria-label="إغلاق النافذة"
+              >
+                <X className="w-4 h-4" />
+              </button>
             </div>
-            <button
-              type="button"
-              onClick={() => setIsLocationModalOpen(false)}
-              className="w-full py-2 bg-gray-100 hover:bg-gray-200 text-[#04383f] text-xs font-bold rounded-lg transition-colors"
-            >
-              إلغاء
-            </button>
+
+            {/* Standard Select: عرض عادي */}
+            <div className="mb-2.5 shrink-0">
+              <label className="block text-[11px] font-bold text-gray-700 mb-1">
+                اختر المحافظة مباشرة:
+              </label>
+              <select
+                value={selectedGovernorate || 'القاهرة'}
+                onChange={(e) => {
+                  setSelectedGovernorate(e.target.value);
+                  setIsLocationModalOpen(false);
+                }}
+                className="w-full text-xs p-2.5 bg-slate-50 border border-slate-200 rounded-xl font-bold text-[#04383f] focus:outline-none focus:border-[#08606B] cursor-pointer"
+              >
+                {activeGovs.map(gov => (
+                  <option key={gov.id} value={gov.name_ar}>
+                    {gov.name_ar} (توصيل: {gov.estimated_days} - {gov.fee_egp} ج.م)
+                  </option>
+                ))}
+              </select>
+            </div>
+
+            {/* Quick Search */}
+            <div className="relative mb-2 shrink-0">
+              <input
+                type="text"
+                value={govSearch}
+                onChange={(e) => setGovSearch(e.target.value)}
+                placeholder="ابحث عن محافظتك بالاسم..."
+                className="w-full text-xs py-2 px-7 border border-slate-200 rounded-xl bg-slate-50 focus:bg-white focus:outline-none focus:border-[#08606B] font-bold"
+              />
+              <Search className="w-3.5 h-3.5 text-gray-400 absolute start-2 top-2.5 pointer-events-none" />
+              {govSearch && (
+                <button
+                  type="button"
+                  onClick={() => setGovSearch('')}
+                  className="absolute end-2 top-2 text-gray-400 hover:text-gray-600 text-xs"
+                >
+                  ✕
+                </button>
+              )}
+            </div>
+
+            {/* Clean List View: عرض عادي - كل محافظة في سطر مرتب */}
+            <div className="space-y-1 max-h-56 overflow-y-auto pe-1 flex-1">
+              {filteredGovs.map(gov => {
+                const isSelected = (selectedGovernorate || 'القاهرة') === gov.name_ar;
+                return (
+                  <button
+                    key={gov.id}
+                    type="button"
+                    onClick={() => {
+                      setSelectedGovernorate(gov.name_ar);
+                      setIsLocationModalOpen(false);
+                      setGovSearch('');
+                    }}
+                    className={`w-full flex items-center justify-between px-3 py-2 rounded-xl text-xs font-bold transition-all text-right cursor-pointer ${
+                      isSelected
+                        ? 'bg-[#04383f] text-white shadow-xs'
+                        : 'bg-[#f8fafb] hover:bg-[#e6f4f5] text-[#04383f] border border-transparent hover:border-[#08606B]/20'
+                    }`}
+                  >
+                    <div className="flex items-center gap-2">
+                      <MapPin className={`w-3.5 h-3.5 ${isSelected ? 'text-[#00D2D3]' : 'text-[#08606B]'}`} />
+                      <span>{gov.name_ar}</span>
+                    </div>
+                    <div className="flex items-center gap-1.5 text-[10px]">
+                      <span className={isSelected ? 'text-gray-300' : 'text-gray-500'}>
+                        {gov.estimated_days}
+                      </span>
+                      {isSelected && <Check className="w-3.5 h-3.5 text-[#00D2D3]" />}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
+
+            <div className="mt-2.5 p-2 rounded-xl bg-[#e6f4f5] border border-[#08606B]/20 text-[#08606B] text-[10px] font-bold text-center shrink-0">
+              🎉 شحن مجاني تماماً لأي طلب أكثر من {freeThreshold} جنيه!
+            </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Cart Drawer */}

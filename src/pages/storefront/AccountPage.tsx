@@ -473,15 +473,9 @@ export const AccountPage: React.FC = () => {
                     onChange={(e) => setGovernorate(e.target.value)}
                     className="w-full p-2.5 border border-gray-300 rounded-xl focus:ring-2 focus:ring-mall-900 focus:outline-hidden font-bold"
                   >
-                    <option value="القاهرة">القاهرة</option>
-                    <option value="الجيزة">الجيزة</option>
-                    <option value="الإسكندرية">الإسكندرية</option>
-                    <option value="القليوبية">القليوبية</option>
-                    <option value="الشرقية">الشرقية</option>
-                    <option value="الدقهلية">الدقهلية</option>
-                    <option value="الغربية">الغربية</option>
-                    <option value="المنوفية">المنوفية</option>
-                    <option value="البحيرة">البحيرة</option>
+                    {dbStore.getGovernorateShippingRates().map((gov) => (
+                      <option key={gov.id} value={gov.name_ar}>{gov.name_ar}</option>
+                    ))}
                   </select>
                 </div>
 

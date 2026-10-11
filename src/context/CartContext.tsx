@@ -10,6 +10,8 @@ interface CartContextType {
   clearCart: () => void;
   itemCount: number;
   subtotal: number;
+  selectedGovernorate: string;
+  setSelectedGovernorate: (gov: string) => void;
   shippingFee: number;
   discount: number;
   appliedCoupon: Coupon | null;
@@ -21,6 +23,12 @@ interface CartContextType {
 const CartContext = createContext<CartContextType | undefined>(undefined);
 
 const CART_STORAGE_KEY = 'al_mostafa_cart_v1';
+
+export const getProductMaxOrderLimit = (product: Product, variant?: ProductVariant | null): number => {
+  const stock = variant ? variant.stock_quantity : product.stock_quantity;
+  const configuredCap = product.max_order_quantity && product.max_order_quantity > 0 ? product.max_order_quantity : 10;
+  return Math.max(0, Math.min(stock, configuredCap));
+};
 
 export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children }) => {
   const [cartItems, setCartItems] = useState<CartItem[]>(() => {
@@ -34,6 +42,39 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
 
   const [appliedCoupon, setAppliedCoupon] = useState<Coupon | null>(null);
   const [couponDiscount, setCouponDiscount] = useState<number>(0);
+  const [selectedGovernorate, setSelectedGovernorateState] = useState<string>(() => {
+    if (typeof window !== 'undefined') {
+      return localStorage.getItem('al_mostafa_selected_governorate') || 'القاهرة';
+    }
+    return 'القاهرة';
+  });
+
+  const setSelectedGovernorate = (gov: string) => {
+    setSelectedGovernorateState(gov);
+    if (typeof window !== 'undefined') {
+      localStorage.setItem('al_mostafa_selected_governorate', gov);
+      window.dispatchEvent(new CustomEvent('al_mostafa_governorate_changed', { detail: gov }));
+    }
+  };
+
+  useEffect(() => {
+    const handleGovChange = (e: any) => {
+      const newGov = e?.detail || localStorage.getItem('al_mostafa_selected_governorate') || 'القاهرة';
+      setSelectedGovernorateState(newGov);
+    };
+    const handleShippingUpdate = () => {
+      // Re-trigger calculation by toggling state or relying on context update
+      setSelectedGovernorateState(prev => prev);
+    };
+    window.addEventListener('al_mostafa_governorate_changed', handleGovChange);
+    window.addEventListener('al_mostafa_shipping_updated', handleShippingUpdate);
+    window.addEventListener('storage', handleGovChange);
+    return () => {
+      window.removeEventListener('al_mostafa_governorate_changed', handleGovChange);
+      window.removeEventListener('al_mostafa_shipping_updated', handleShippingUpdate);
+      window.removeEventListener('storage', handleGovChange);
+    };
+  }, []);
 
   useEffect(() => {
     try {
@@ -44,6 +85,9 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, [cartItems]);
 
   const addToCart = (product: Product, quantity = 1, variant: ProductVariant | null = null) => {
+    const maxLimit = getProductMaxOrderLimit(product, variant);
+    if (maxLimit <= 0) return;
+
     setCartItems(prev => {
       const existingIndex = prev.findIndex(item => 
         item.product.id === product.id && 
@@ -53,12 +97,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       if (existingIndex > -1) {
         const updated = [...prev];
         const newQty = updated[existingIndex].quantity + quantity;
-        // Verify stock limits
-        const maxStock = variant ? variant.stock_quantity : product.stock_quantity;
-        updated[existingIndex].quantity = Math.min(newQty, maxStock > 0 ? maxStock : newQty);
+        updated[existingIndex].quantity = Math.min(newQty, maxLimit);
         return updated;
       } else {
-        return [...prev, { product, quantity, variant }];
+        return [...prev, { product, quantity: Math.min(quantity, maxLimit), variant }];
       }
     });
   };
@@ -76,8 +118,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
     }
     setCartItems(prev => prev.map(item => {
       if (item.product.id === productId && (variantId ? item.variant?.id === variantId : !item.variant)) {
-        const maxStock = item.variant ? item.variant.stock_quantity : item.product.stock_quantity;
-        return { ...item, quantity: Math.min(quantity, maxStock > 0 ? maxStock : quantity) };
+        const maxLimit = getProductMaxOrderLimit(item.product, item.variant);
+        return { ...item, quantity: Math.min(quantity, maxLimit > 0 ? maxLimit : 1) };
       }
       return item;
     }));
@@ -97,8 +139,10 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
   }, 0);
 
   const settings = dbStore.getSettings();
-  const isFreeShipping = subtotal >= settings.free_shipping_threshold_egp && subtotal > 0;
-  const shippingFee = subtotal === 0 ? 0 : (isFreeShipping ? 0 : settings.shipping_flat_fee_egp);
+  const rawThreshold = Number(settings.free_shipping_threshold_egp);
+  const freeThreshold = (rawThreshold > 0 && rawThreshold !== 500) ? rawThreshold : 750;
+  const isFreeShipping = subtotal >= freeThreshold && subtotal > 0;
+  const shippingFee = subtotal === 0 ? 0 : (isFreeShipping ? 0 : dbStore.getShippingFeeForGovernorate(selectedGovernorate, subtotal));
 
   const applyCoupon = (code: string) => {
     const result = dbStore.validateCoupon(code, subtotal);
@@ -139,6 +183,8 @@ export const CartProvider: React.FC<{ children: React.ReactNode }> = ({ children
       clearCart,
       itemCount,
       subtotal,
+      selectedGovernorate,
+      setSelectedGovernorate,
       shippingFee,
       discount: couponDiscount,
       appliedCoupon,

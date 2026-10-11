@@ -167,7 +167,7 @@ export const OrderInvoiceModal: React.FC<OrderInvoiceModalProps> = ({ order, onC
         <h2 className="font-black text-sm text-gray-900 tracking-wider">مول المصطفى (AL MOSTAFA)</h2>
         <p className="text-[10px] text-gray-600">كل احتياجاتك تحت سقف واحد</p>
         <p className="text-[10px] text-gray-500">س.ت: 458921 | ب.ض: 923-441-802</p>
-        <p className="text-[10px] text-gray-600">خدمة العملاء: {settings.phone || '01023456789'}</p>
+        <p className="text-[10px] text-gray-600">خدمة العملاء: {settings.phone || '01017297414'}</p>
       </div>
 
       {/* Receipt Info */}
@@ -282,7 +282,7 @@ export const OrderInvoiceModal: React.FC<OrderInvoiceModalProps> = ({ order, onC
             <p className="text-[11px] text-gray-600 font-bold">كل احتياجاتك تحت سقف واحد</p>
             <p className="text-[10px] text-gray-500 mt-0.5">سجل تجاري: 458921 | بطاقة ضريبية: 923-441-802</p>
             <p className="text-[10px] text-gray-500">
-              خدمة العملاء: {settings.phone || '01023456789'} | {settings.support_email || 'contact@almostafamall.com'}
+              خدمة العملاء: {settings.phone || '01017297414'} | {settings.support_email || 'contact@almostafamall.com'}
             </p>
             <p className="text-[10px] text-gray-500">{settings.address_ar}</p>
           </div>

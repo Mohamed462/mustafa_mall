@@ -17,13 +17,13 @@ export const BrandStorySection: React.FC = () => {
         <div className="text-center max-w-3xl mx-auto mb-10">
           <div className="inline-flex items-center gap-2 px-3.5 py-1 rounded-full bg-[#08606B]/8 border border-[#08606B]/20 text-[#08606B] text-xs font-bold mb-3">
             <Sparkles className="w-3.5 h-3.5 text-[#00D2D3]" />
-            <span>معايير الجودة والضمان | مول المصطفى</span>
+            <span>ليه مول المصطفى؟</span>
           </div>
           <h2 className="text-2xl sm:text-3xl lg:text-4xl font-black text-[#11151a] tracking-tight">
-            لماذا يختار عملاؤنا <span className="text-[#08606B]">مول المصطفى</span>؟
+            ليه تشتري وتطبع من <span className="text-[#08606B]">مول المصطفى</span>؟
           </h2>
-          <p className="text-[#5f6870] text-xs sm:text-sm mt-3 leading-relaxed">
-            منظومة متكاملة للتسوق الذكي والطباعة التخصصية، نجمع بين جودة السلع المعتمدة، سرعة التوصيل لكل المحافظات، وخدمة عملاء حقيقية تتابع معك خطوة بخطوة.
+          <p className="text-[#5f6870] text-xs sm:text-sm mt-2 leading-relaxed">
+            علشان بنجمعلك الأصلي بأحسن سعر في مصر، وشحن سريع لباب بيتك، ومتابعة ع الواتساب لحظة بلحظة!
           </p>
         </div>
 
@@ -35,11 +35,11 @@ export const BrandStorySection: React.FC = () => {
               <div className="w-10 h-10 rounded-full bg-[#08606B]/10 text-[#08606B] flex items-center justify-center mb-3.5 group-hover:scale-105 transition-transform shadow-xs">
                 <ShieldCheck className="w-5 h-5 text-[#08606B]" />
               </div>
-              <h3 className="text-sm font-black text-[#11151a] mb-1.5">
-                منتجات أصلية ومضمونة 100%
+              <h3 className="text-sm font-black text-[#11151a] mb-1">
+                بضاعة أصلية ومضمونة 100%
               </h3>
               <p className="text-xs text-[#5f6870] leading-relaxed">
-                توريد مباشر من الوكلاء والمصانع المعتمدة مع ضمان الجودة الكامل وسياسة استبدال مرنة.
+                توريد مباشر من الوكلاء المعتمدين مع حق استبدال واسترجاع مريح.
               </p>
             </div>
           </div>
@@ -49,11 +49,11 @@ export const BrandStorySection: React.FC = () => {
               <div className="w-10 h-10 rounded-full bg-[#08606B]/10 text-[#08606B] flex items-center justify-center mb-3.5 group-hover:scale-105 transition-transform shadow-xs">
                 <Printer className="w-5 h-5 text-[#08606B]" />
               </div>
-              <h3 className="text-sm font-black text-[#11151a] mb-1.5">
-                مركز طباعة وتجليد ديجيتال
+              <h3 className="text-sm font-black text-[#11151a] mb-1">
+                طباعة وتجليد ديجيتال فاخر
               </h3>
               <p className="text-xs text-[#5f6870] leading-relaxed">
-                خطوط إنتاج متطورة لطباعة الأبحاث، الرسائل الجامعية، اللوحات الهندسية والتجليد المذهب.
+                أحدث خطوط طباعة الرسائل والأبحاث والبانرات بدقة ليزر وتجليد مذهب.
               </p>
             </div>
           </div>
@@ -63,11 +63,11 @@ export const BrandStorySection: React.FC = () => {
               <div className="w-10 h-10 rounded-full bg-[#08606B]/10 text-[#08606B] flex items-center justify-center mb-3.5 group-hover:scale-105 transition-transform shadow-xs">
                 <Truck className="w-5 h-5 text-[#08606B]" />
               </div>
-              <h3 className="text-sm font-black text-[#11151a] mb-1.5">
+              <h3 className="text-sm font-black text-[#11151a] mb-1">
                 شحن سريع لكل المحافظات
               </h3>
               <p className="text-xs text-[#5f6870] leading-relaxed">
-                تغليف آمن ومحكم وتوصيل لباب منزلك في خلال 24 إلى 48 ساعة مع كود تتبع مباشر لحظي.
+                تغليف محترم ويوصلك في 24 إلى 48 ساعة مع كود تتبع مباشر.
               </p>
             </div>
           </div>
@@ -77,11 +77,11 @@ export const BrandStorySection: React.FC = () => {
               <div className="w-10 h-10 rounded-full bg-[#08606B]/10 text-[#08606B] flex items-center justify-center mb-3.5 group-hover:scale-105 transition-transform shadow-xs">
                 <HeartHandshake className="w-5 h-5 text-[#08606B]" />
               </div>
-              <h3 className="text-sm font-black text-[#11151a] mb-1.5">
-                فحص المنتج قبل الاستلام
+              <h3 className="text-sm font-black text-[#11151a] mb-1">
+                عاين وافحص قبل ما تدفع
               </h3>
               <p className="text-xs text-[#5f6870] leading-relaxed">
-                حق المعاينة والتأكد من مطابقة المواصفات مع المندوب قبل دفع أي مليم لأمانك التام.
+                حقك تعاين وتتأكد من طلبك مع مندوب الشحن قبل ما تدفع أي مليم.
               </p>
             </div>
           </div>
