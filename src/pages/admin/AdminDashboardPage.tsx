@@ -1,6 +1,7 @@
-import React, { useMemo } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { dbStore } from '../../services/dbStore';
+import { Order, Product, PrintRequest } from '../../types';
 import { formatCurrencyEGP, formatDateArabic } from '../../utils/formatters';
 import { 
   ShoppingCart, 
@@ -15,9 +16,26 @@ import {
 } from 'lucide-react';
 
 export const AdminDashboardPage: React.FC = () => {
-  const orders = useMemo(() => dbStore.getOrders(), []);
-  const products = useMemo(() => dbStore.getProducts(), []);
-  const printRequests = useMemo(() => dbStore.getPrintRequests(), []);
+  const [orders, setOrders] = useState<Order[]>(() => dbStore.getOrders());
+  const [products, setProducts] = useState<Product[]>(() => dbStore.getProducts());
+  const [printRequests, setPrintRequests] = useState<PrintRequest[]>(() => dbStore.getPrintRequests());
+
+  useEffect(() => {
+    dbStore.fetchOrdersFromCloud().then(setOrders);
+
+    const handleUpdate = () => {
+      setOrders(dbStore.getOrders());
+      setProducts(dbStore.getProducts());
+      setPrintRequests(dbStore.getPrintRequests());
+    };
+    window.addEventListener('al_mostafa_orders_updated', handleUpdate);
+    window.addEventListener('al_mostafa_db_updated', handleUpdate);
+
+    return () => {
+      window.removeEventListener('al_mostafa_orders_updated', handleUpdate);
+      window.removeEventListener('al_mostafa_db_updated', handleUpdate);
+    };
+  }, []);
 
   // Actual Metrics derived directly from persisted data
   const totalSales = orders.reduce((sum, o) => sum + (o.payment_status === 'paid' ? o.total_egp : 0), 0);

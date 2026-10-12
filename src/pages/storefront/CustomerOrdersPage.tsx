@@ -12,10 +12,22 @@ export const CustomerOrdersPage: React.FC = () => {
   const { currentUser, isAuthenticated, openAuthModal, isAdmin } = useAuth();
   const [quickOrderInput, setQuickOrderInput] = useState('');
 
+  const [allOrders, setAllOrders] = useState(() => dbStore.getOrders());
+
+  React.useEffect(() => {
+    dbStore.fetchOrdersFromCloud().then(setAllOrders);
+    const handleUpdate = () => setAllOrders(dbStore.getOrders());
+    window.addEventListener('al_mostafa_orders_updated', handleUpdate);
+    window.addEventListener('al_mostafa_db_updated', handleUpdate);
+    return () => {
+      window.removeEventListener('al_mostafa_orders_updated', handleUpdate);
+      window.removeEventListener('al_mostafa_db_updated', handleUpdate);
+    };
+  }, []);
+
   const orders = useMemo(() => {
     if (!isAuthenticated || !currentUser) return [];
 
-    const allOrders = dbStore.getOrders();
     // Admin can see store orders, but customer only sees their own
     if (isAdmin) {
       return allOrders;
@@ -27,7 +39,7 @@ export const CustomerOrdersPage: React.FC = () => {
       const matchPhone = cleanUserPhone && order.customer_phone && normalizeEgyptianPhone(order.customer_phone) === cleanUserPhone;
       return matchId || matchPhone;
     });
-  }, [isAuthenticated, currentUser, isAdmin]);
+  }, [allOrders, isAuthenticated, currentUser, isAdmin]);
 
   const handleQuickLookup = (e: React.FormEvent) => {
     e.preventDefault();

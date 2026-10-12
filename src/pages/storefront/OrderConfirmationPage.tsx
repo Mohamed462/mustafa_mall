@@ -5,7 +5,7 @@ import { useStoreSettings } from '../../context/StoreSettingsContext';
 import { formatCurrencyEGP, formatDateArabic, getWhatsAppUrl, normalizeArabicDigits } from '../../utils/formatters';
 import { handleImageError } from '../../utils/imageUtils';
 import { OrderInvoiceModal } from '../../components/admin/OrderInvoiceModal';
-import { OrderStatus } from '../../types';
+import { Order, OrderStatus } from '../../types';
 import { 
   CheckCircle2, 
   MessageCircle, 
@@ -32,13 +32,27 @@ export const OrderConfirmationPage: React.FC = () => {
   const [copiedPhone, setCopiedPhone] = useState(false);
   const [copiedAmount, setCopiedAmount] = useState(false);
 
-  // Sync lookup input when orderNumber param changes via navigation
+  const [order, setOrder] = useState<Order | undefined>(() => orderNumber ? dbStore.getOrderByNumber(orderNumber) : undefined);
+  const [isLoading, setIsLoading] = useState(!order && Boolean(orderNumber));
+
+  // Sync lookup input and fetch authoritative order from cloud
   React.useEffect(() => {
     setLookupInput(orderNumber);
-  }, [orderNumber]);
-
-  const order = useMemo(() => {
-    return orderNumber ? dbStore.getOrderByNumber(orderNumber) : undefined;
+    if (orderNumber) {
+      const local = dbStore.getOrderByNumber(orderNumber);
+      if (local) {
+        setOrder(local);
+        setIsLoading(false);
+      }
+      dbStore.fetchOrderByNumberFromCloud(orderNumber).then((cloudOrder) => {
+        if (cloudOrder) setOrder(cloudOrder);
+      }).finally(() => {
+        setIsLoading(false);
+      });
+    } else {
+      setOrder(undefined);
+      setIsLoading(false);
+    }
   }, [orderNumber]);
 
   const handleLookupSubmit = (e: React.FormEvent) => {
@@ -68,6 +82,16 @@ export const OrderConfirmationPage: React.FC = () => {
         return { label: status, color: 'bg-gray-50 text-gray-800 border-gray-200', icon: Clock, currentStep: 1 };
     }
   };
+
+  if (isLoading) {
+    return (
+      <div className="max-w-2xl mx-auto px-4 py-20 text-center space-y-4">
+        <div className="w-10 h-10 border-4 border-gold-500 border-t-transparent rounded-full animate-spin mx-auto" />
+        <h2 className="text-base font-bold text-gray-800">جاري استرجاع تفاصيل وفاتورة الطلب من السيرفر...</h2>
+        <p className="text-xs text-gray-400 font-mono">{orderNumber}</p>
+      </div>
+    );
+  }
 
   if (!order) {
     return (

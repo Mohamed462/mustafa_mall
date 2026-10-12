@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../../context/AuthContext';
 import { dbStore } from '../../services/dbStore';
@@ -52,10 +52,26 @@ export const AccountPage: React.FC = () => {
   const [notes, setNotes] = useState('');
   const [isDefault, setIsDefault] = useState(true);
 
+  const [rawOrders, setRawOrders] = useState(() => dbStore.getOrders());
+
+  useEffect(() => {
+    dbStore.fetchOrdersFromCloud().then(setRawOrders);
+    const handleUpdate = () => setRawOrders(dbStore.getOrders());
+    window.addEventListener('al_mostafa_orders_updated', handleUpdate);
+    window.addEventListener('al_mostafa_db_updated', handleUpdate);
+    return () => {
+      window.removeEventListener('al_mostafa_orders_updated', handleUpdate);
+      window.removeEventListener('al_mostafa_db_updated', handleUpdate);
+    };
+  }, []);
+
   // Recent user orders
-  const orders = dbStore.getOrders().filter(o => 
-    currentUser?.phone && o.customer_phone.includes(currentUser.phone)
-  ).slice(0, 3);
+  const orders = useMemo(() => {
+    return rawOrders.filter(o => 
+      (currentUser?.id && o.customer_id === currentUser.id) ||
+      (currentUser?.phone && o.customer_phone && o.customer_phone.includes(currentUser.phone))
+    ).slice(0, 3);
+  }, [rawOrders, currentUser]);
 
   const printRequests = dbStore.getPrintRequests().filter(p => 
     currentUser?.phone && p.customer_phone.includes(currentUser.phone)

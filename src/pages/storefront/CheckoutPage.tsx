@@ -166,7 +166,7 @@ export const CheckoutPage: React.FC = () => {
     );
   }
 
-  const handleSubmitOrder = (e: React.FormEvent) => {
+  const handleSubmitOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     setErrorMsg('');
 
@@ -206,7 +206,7 @@ export const CheckoutPage: React.FC = () => {
     setIsSubmitting(true);
 
     try {
-      const order = dbStore.createOrder({
+      const order = await dbStore.createOrderAsync({
         customer_id: currentUser?.id || null,
         customer_name: fullName.trim(),
         customer_phone: cleanedPhone,

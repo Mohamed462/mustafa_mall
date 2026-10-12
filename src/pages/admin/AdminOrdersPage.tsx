@@ -14,14 +14,48 @@ import {
   Clock, 
   CheckCircle2, 
   AlertCircle,
-  Truck
+  Truck,
+  RefreshCw
 } from 'lucide-react';
 
 export const AdminOrdersPage: React.FC = () => {
   const [orders, setOrders] = useState<Order[]>(() => dbStore.getOrders());
+  const [isRefreshing, setIsRefreshing] = useState(false);
   const [searchTerm, setSearchTerm] = useState('');
   const [selectedStatus, setSelectedStatus] = useState<string>('all');
   const [selectedOrderForInvoice, setSelectedOrderForInvoice] = useState<Order | null>(null);
+
+  // Authoritative cloud fetch on mount and automatic polling
+  React.useEffect(() => {
+    setIsRefreshing(true);
+    dbStore.fetchOrdersFromCloud()
+      .then((cloudOrders) => setOrders(cloudOrders))
+      .finally(() => setIsRefreshing(false));
+
+    const handleUpdate = () => {
+      setOrders(dbStore.getOrders());
+    };
+    window.addEventListener('al_mostafa_orders_updated', handleUpdate);
+    window.addEventListener('al_mostafa_db_updated', handleUpdate);
+
+    // Auto-refresh interval every 15s while viewing orders
+    const interval = setInterval(() => {
+      dbStore.fetchOrdersFromCloud().then((cloudOrders) => setOrders(cloudOrders));
+    }, 15000);
+
+    return () => {
+      window.removeEventListener('al_mostafa_orders_updated', handleUpdate);
+      window.removeEventListener('al_mostafa_db_updated', handleUpdate);
+      clearInterval(interval);
+    };
+  }, []);
+
+  const handleManualRefresh = () => {
+    setIsRefreshing(true);
+    dbStore.fetchOrdersFromCloud()
+      .then((cloudOrders) => setOrders(cloudOrders))
+      .finally(() => setIsRefreshing(false));
+  };
 
   const filtered = useMemo(() => {
     return orders.filter((o) => {
@@ -37,19 +71,19 @@ export const AdminOrdersPage: React.FC = () => {
   const [cancelModalOrder, setCancelModalOrder] = useState<{ id: string; status: OrderStatus; orderNumber: string } | null>(null);
   const [isDamagedGoods, setIsDamagedGoods] = useState(false);
 
-  const handleQuickStatusChange = (order: Order, newStatus: OrderStatus) => {
+  const handleQuickStatusChange = async (order: Order, newStatus: OrderStatus) => {
     if (newStatus === 'cancelled' || newStatus === 'returned') {
       setCancelModalOrder({ id: order.id, status: newStatus, orderNumber: order.order_number });
       setIsDamagedGoods(false);
       return;
     }
-    dbStore.updateOrderStatus(order.id, newStatus, `تحديث سريع من لوحة التحكم`);
+    await dbStore.updateOrderStatusAsync(order.id, newStatus, `تحديث سريع من لوحة التحكم`);
     setOrders(dbStore.getOrders());
   };
 
-  const confirmCancellation = () => {
+  const confirmCancellation = async () => {
     if (!cancelModalOrder) return;
-    dbStore.updateOrderStatus(
+    await dbStore.updateOrderStatusAsync(
       cancelModalOrder.id, 
       cancelModalOrder.status, 
       isDamagedGoods ? 'إلغاء مع تسجيل بضاعة تالفة' : 'إلغاء وإعادة البضاعة للمخزون',
@@ -86,6 +120,15 @@ export const AdminOrdersPage: React.FC = () => {
             متابعة دقيقة لكل طلب، طباعة الفواتير وبوالص الشحن الرسمية، وتحديث الحالات فورياً
           </p>
         </div>
+
+        <button
+          onClick={handleManualRefresh}
+          disabled={isRefreshing}
+          className="inline-flex items-center gap-2 px-4 py-2.5 bg-mall-900 hover:bg-mall-800 text-white rounded-xl text-xs font-bold transition-all shadow-xs disabled:opacity-60 cursor-pointer self-start sm:self-auto"
+        >
+          <RefreshCw className={`w-4 h-4 ${isRefreshing ? 'animate-spin text-gold-400' : ''}`} />
+          <span>{isRefreshing ? 'جاري المزامنة مع السيرفر...' : 'تحديث الطلبات من السيرفر'}</span>
+        </button>
       </div>
 
       {/* Filter and Search Bar */}

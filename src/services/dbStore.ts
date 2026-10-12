@@ -400,6 +400,10 @@ async function syncFromCloud(): Promise<boolean> {
       window.dispatchEvent(new CustomEvent('al_mostafa_content_updated'));
       window.dispatchEvent(new CustomEvent('al_mostafa_db_updated'));
     }
+
+    // Simultaneously fetch latest orders from D1
+    dbStore.fetchOrdersFromCloud().catch(() => {});
+
     return true;
   } catch {
     return false;
@@ -423,10 +427,12 @@ if (typeof window !== 'undefined') {
     syncFromCloud();
   });
 
-  // Background polling every 20s for real-time multi-device sync
+  // Periodic background cloud sync every 25 seconds
   setInterval(() => {
-    syncFromCloud();
-  }, 20000);
+    if (typeof document !== 'undefined' && document.visibilityState === 'visible') {
+      syncFromCloud();
+    }
+  }, 25000);
 }
 
 export const dbStore = {
@@ -866,6 +872,144 @@ export const dbStore = {
       return num === clean || num === `MSM-${clean}` || num.replace('MSM-', '') === clean;
     });
   },
+
+  // Authoritative cross-device cloud sync for orders
+  fetchOrdersFromCloud: async (): Promise<Order[]> => {
+    if (typeof window === 'undefined') return state.orders;
+    try {
+      const res = await apiFetch(`/api/orders?_t=${Date.now()}`, {
+        headers: { 'Accept': 'application/json' },
+        cache: 'no-store'
+      });
+      if (!res.ok) return state.orders;
+      const json = await res.json();
+      if (json.success && Array.isArray(json.data)) {
+        const serverOrders: Order[] = json.data;
+        const orderMap = new Map<string, Order>();
+
+        // Keep local orders initially
+        for (const o of state.orders) {
+          orderMap.set(o.id, o);
+          if (o.order_number) orderMap.set(o.order_number, o);
+        }
+
+        // Merge server orders (server takes precedence)
+        for (const so of serverOrders) {
+          const local = orderMap.get(so.id) || (so.order_number ? orderMap.get(so.order_number) : undefined);
+          const parsedItems = Array.isArray(so.items)
+            ? so.items
+            : (typeof (so as any).items_json === 'string' ? JSON.parse((so as any).items_json || '[]') : []);
+
+          const parsedHistory = Array.isArray(so.status_history) && so.status_history.length > 0
+            ? so.status_history
+            : (local?.status_history || [
+                {
+                  id: `hist-${so.id}`,
+                  order_id: so.id,
+                  from_status: null,
+                  to_status: so.order_status,
+                  notes: 'تم استلام وتوثيق الطلب بنجاح',
+                  changed_by: 'النظام الآلي',
+                  created_at: so.created_at,
+                }
+              ]);
+
+          const merged: Order = {
+            ...so,
+            items: parsedItems,
+            status_history: parsedHistory,
+          };
+
+          orderMap.set(so.id, merged);
+          if (so.order_number) orderMap.set(so.order_number, merged);
+        }
+
+        // Deduplicate uniquely by order ID
+        const uniqueOrders = Array.from(new Set(Array.from(orderMap.values()).map(o => o.id)))
+          .map(id => orderMap.get(id)!)
+          .sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime());
+
+        state.orders = uniqueOrders;
+        saveState(state);
+        window.dispatchEvent(new CustomEvent('al_mostafa_orders_updated'));
+        window.dispatchEvent(new CustomEvent('al_mostafa_db_updated'));
+      }
+    } catch (err) {
+      console.debug('Failed to fetch orders from cloud:', err);
+    }
+    return [...state.orders];
+  },
+
+  fetchOrderByIdFromCloud: async (id: string): Promise<Order | undefined> => {
+    const local = state.orders.find(o => o.id === id);
+    if (typeof window === 'undefined') return local;
+    try {
+      const res = await apiFetch(`/api/orders?id=${encodeURIComponent(id)}&_t=${Date.now()}`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          const so = json.data;
+          const formatted: Order = {
+            ...so,
+            items: Array.isArray(so.items)
+              ? so.items
+              : (typeof so.items_json === 'string' ? JSON.parse(so.items_json || '[]') : []),
+            status_history: Array.isArray(so.status_history) && so.status_history.length > 0
+              ? so.status_history
+              : local?.status_history,
+          };
+          const idx = state.orders.findIndex(o => o.id === id);
+          if (idx >= 0) {
+            state.orders[idx] = formatted;
+          } else {
+            state.orders.unshift(formatted);
+          }
+          saveState(state);
+          window.dispatchEvent(new CustomEvent('al_mostafa_orders_updated'));
+          return formatted;
+        }
+      }
+    } catch (err) {
+      console.debug('fetchOrderByIdFromCloud error:', err);
+    }
+    return local;
+  },
+
+  fetchOrderByNumberFromCloud: async (orderNumber: string): Promise<Order | undefined> => {
+    const local = dbStore.getOrderByNumber(orderNumber);
+    if (typeof window === 'undefined') return local;
+    try {
+      const res = await apiFetch(`/api/orders?order_number=${encodeURIComponent(orderNumber)}&_t=${Date.now()}`);
+      if (res.ok) {
+        const json = await res.json();
+        if (json.success && json.data) {
+          const so = json.data;
+          const formatted: Order = {
+            ...so,
+            items: Array.isArray(so.items)
+              ? so.items
+              : (typeof so.items_json === 'string' ? JSON.parse(so.items_json || '[]') : []),
+            status_history: Array.isArray(so.status_history) && so.status_history.length > 0
+              ? so.status_history
+              : local?.status_history,
+          };
+          const idx = state.orders.findIndex(o => o.id === formatted.id || o.order_number === formatted.order_number);
+          if (idx >= 0) {
+            state.orders[idx] = formatted;
+          } else {
+            state.orders.unshift(formatted);
+          }
+          saveState(state);
+          window.dispatchEvent(new CustomEvent('al_mostafa_orders_updated'));
+          return formatted;
+        }
+      }
+    } catch (err) {
+      console.debug('fetchOrderByNumberFromCloud error:', err);
+    }
+    return local;
+  },
+
   createOrder: (orderData: Omit<Order, 'id' | 'order_number' | 'created_at' | 'updated_at' | 'status_history'>): Order => {
     const orderId = `ord-${Date.now()}`;
     const orderNumber = `MSM-${Math.floor(100000 + Math.random() * 900000)}`;
@@ -934,6 +1078,36 @@ export const dbStore = {
 
     return newOrder;
   },
+
+  createOrderAsync: async (orderData: Omit<Order, 'id' | 'order_number' | 'created_at' | 'updated_at' | 'status_history'>): Promise<Order> => {
+    const localOrder = dbStore.createOrder(orderData);
+    if (typeof window !== 'undefined') {
+      try {
+        const res = await apiFetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(localOrder),
+        });
+        if (res.ok) {
+          const json = await res.json();
+          if (json.success && json.data) {
+            const serverOrder = json.data;
+            if (serverOrder.id && serverOrder.id !== localOrder.id) {
+              localOrder.id = serverOrder.id;
+            }
+            if (serverOrder.order_number && serverOrder.order_number !== localOrder.order_number) {
+              localOrder.order_number = serverOrder.order_number;
+            }
+            saveState(state);
+          }
+        }
+      } catch (err) {
+        console.warn('Network issue during online order confirmation, saved in local state:', err);
+      }
+    }
+    return localOrder;
+  },
+
   updateOrderStatus: (
     orderId: string, 
     toStatus: OrderStatus, 
@@ -951,7 +1125,6 @@ export const dbStore = {
     // Stock management on cancellation/return
     if (isNowCancelled && !wasAlreadyCancelled) {
       if (options?.isDamaged) {
-        // Record damaged items movement without restocking to sellable inventory
         for (const item of order.items) {
           const prod = state.products.find(p => p.id === item.product_id);
           if (prod) {
@@ -959,7 +1132,7 @@ export const dbStore = {
               prod.id,
               prod.name_ar,
               item.variant_id || null,
-              0, // 0 quantity added back to available stock
+              0,
               prod.stock_quantity,
               prod.stock_quantity,
               'damaged',
@@ -968,7 +1141,6 @@ export const dbStore = {
           }
         }
       } else {
-        // Restock to available inventory
         for (const item of order.items) {
           const prod = state.products.find(p => p.id === item.product_id);
           if (prod) {
@@ -1020,16 +1192,48 @@ export const dbStore = {
 
     saveState(state);
     dbStore.logAudit('update', 'orders', orderId, `تحديث حالة الطلب ${order.order_number} إلى ${toStatus}`);
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('al_mostafa_orders_updated'));
+      window.dispatchEvent(new CustomEvent('al_mostafa_db_updated'));
+    }
 
     if (typeof window !== 'undefined') {
       apiFetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ action: 'update_status', id: orderId, order_status: toStatus }),
+        body: JSON.stringify({ action: 'update_status', id: orderId, order_status: toStatus, notes: noteText, changed_by: changedBy }),
       }).catch(err => console.debug('D1 order status sync:', err));
     }
 
     return order;
+  },
+
+  updateOrderStatusAsync: async (
+    orderId: string, 
+    toStatus: OrderStatus, 
+    notes?: string, 
+    changedBy = 'مدير المتجر',
+    options?: { isDamaged?: boolean }
+  ): Promise<Order | null> => {
+    const updated = dbStore.updateOrderStatus(orderId, toStatus, notes, changedBy, options);
+    if (updated && typeof window !== 'undefined') {
+      try {
+        await apiFetch('/api/orders', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ 
+            action: 'update_status', 
+            id: orderId, 
+            order_status: toStatus, 
+            notes: notes || undefined, 
+            changed_by: changedBy 
+          }),
+        });
+      } catch (err) {
+        console.warn('Network issue during online order status sync:', err);
+      }
+    }
+    return updated;
   },
 
   // PRINT SERVICES & REQUESTS

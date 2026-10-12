@@ -1,6 +1,6 @@
 import React, { useState, useMemo } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { OrderStatus } from '../../types';
+import { Order, OrderItem, OrderStatus, OrderStatusHistoryItem } from '../../types';
 import { dbStore } from '../../services/dbStore';
 import { formatCurrencyEGP, formatDateArabic, getWhatsAppUrl, getOrderStatusBadge } from '../../utils/formatters';
 import { useStoreSettings } from '../../context/StoreSettingsContext';
@@ -19,7 +19,9 @@ export const AdminOrderDetailPage: React.FC = () => {
   const { id } = useParams<{ id: string }>();
   const { settings } = useStoreSettings();
 
-  const [order, setOrder] = useState(() => id ? dbStore.getOrderById(id) : undefined);
+  const [order, setOrder] = useState<Order | undefined>(() => id ? dbStore.getOrderById(id) : undefined);
+  const [isLoading, setIsLoading] = useState(!order);
+  const [isSaving, setIsSaving] = useState(false);
   const [selectedStatus, setSelectedStatus] = useState<OrderStatus>(order?.order_status || 'pending_confirmation');
   const [statusNote, setStatusNote] = useState('');
   const [isDamagedGoods, setIsDamagedGoods] = useState(false);
@@ -32,9 +34,28 @@ export const AdminOrderDetailPage: React.FC = () => {
       if (current) {
         setOrder(current);
         setSelectedStatus(current.order_status);
+        setIsLoading(false);
       }
+      // Guarantee cloud synchronization
+      dbStore.fetchOrderByIdFromCloud(id).then((cloudOrder) => {
+        if (cloudOrder) {
+          setOrder(cloudOrder);
+          setSelectedStatus(cloudOrder.order_status);
+        }
+      }).finally(() => {
+        setIsLoading(false);
+      });
     }
   }, [id]);
+
+  if (isLoading) {
+    return (
+      <div className="max-w-4xl mx-auto py-16 text-center space-y-4">
+        <div className="w-8 h-8 border-4 border-gold-500 border-t-transparent rounded-full animate-spin mx-auto" />
+        <h2 className="text-base font-bold text-gray-800">جاري تحميل وتحديث تفاصيل الطلب من السيرفر...</h2>
+      </div>
+    );
+  }
 
   if (!order) {
     return (
@@ -47,9 +68,10 @@ export const AdminOrderDetailPage: React.FC = () => {
     );
   }
 
-  const handleUpdateStatus = (e: React.FormEvent) => {
+  const handleUpdateStatus = async (e: React.FormEvent) => {
     e.preventDefault();
-    const updated = dbStore.updateOrderStatus(
+    setIsSaving(true);
+    const updated = await dbStore.updateOrderStatusAsync(
       order.id, 
       selectedStatus, 
       statusNote || undefined, 
@@ -60,8 +82,9 @@ export const AdminOrderDetailPage: React.FC = () => {
       setOrder({ ...updated });
       setStatusNote('');
       setSaveSuccess(true);
-      setTimeout(() => setSaveSuccess(false), 2000);
+      setTimeout(() => setSaveSuccess(false), 2500);
     }
+    setIsSaving(false);
   };
 
   const whatsappLink = getWhatsAppUrl(
@@ -209,7 +232,7 @@ export const AdminOrderDetailPage: React.FC = () => {
         </h4>
 
         <div className="divide-y divide-gray-100">
-          {order.items.map((item, idx) => (
+          {order.items.map((item: OrderItem, idx: number) => (
             <div key={idx} className="py-3 flex items-center justify-between text-xs">
               <div className="flex items-center gap-3">
                 {item.image_url && (
@@ -259,7 +282,7 @@ export const AdminOrderDetailPage: React.FC = () => {
             سجل حركة وتتبع حالة الطلب (Audit History)
           </h4>
           <div className="space-y-2">
-            {order.status_history.map((h) => (
+            {order.status_history.map((h: OrderStatusHistoryItem) => (
               <div key={h.id} className="p-3 bg-gray-50 rounded-xl border border-gray-100 text-xs flex items-center justify-between">
                 <div>
                   <span className="font-bold text-gray-800">الحالة: {h.to_status}</span>
