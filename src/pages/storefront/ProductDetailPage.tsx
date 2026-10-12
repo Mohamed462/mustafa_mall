@@ -29,7 +29,7 @@ import {
   ChevronRight,
   ChevronLeft
 } from 'lucide-react';
-import { handleImageError } from '../../utils/imageUtils';
+import { handleImageError, normalizeImageUrl, PRODUCT_FALLBACK_IMAGE } from '../../utils/imageUtils';
 
 export const ProductDetailPage: React.FC = () => {
   const { slug } = useParams<{ slug: string }>();
@@ -197,7 +197,7 @@ export const ProductDetailPage: React.FC = () => {
 
               {/* Product Image that pans and scales with mouse */}
               <img
-                src={images[selectedImageIndex]?.image_url || images[0].image_url}
+                src={normalizeImageUrl(images[selectedImageIndex]?.image_url || images[0]?.image_url, PRODUCT_FALLBACK_IMAGE)}
                 alt={product.name_ar}
                 loading="eager"
                 decoding="async"
@@ -226,7 +226,7 @@ export const ProductDetailPage: React.FC = () => {
                     }`}
                   >
                     <img
-                      src={img.image_url}
+                      src={normalizeImageUrl(img.image_url, PRODUCT_FALLBACK_IMAGE)}
                       alt=""
                       loading="lazy"
                       decoding="async"
@@ -487,7 +487,7 @@ export const ProductDetailPage: React.FC = () => {
       <div className="lg:hidden fixed bottom-0 inset-x-0 z-40 bg-white/95 backdrop-blur-md border-t border-slate-200 p-3 shadow-lg flex items-center justify-between gap-2.5">
         <div className="flex items-center gap-2 min-w-0 flex-1">
           <img
-            src={images[selectedImageIndex]?.image_url || images[0]?.image_url}
+            src={normalizeImageUrl(images[selectedImageIndex]?.image_url || images[0]?.image_url, PRODUCT_FALLBACK_IMAGE)}
             alt=""
             className="w-11 h-11 object-contain rounded-lg border border-slate-200 p-0.5 bg-slate-50 shrink-0"
             onError={handleImageError}
@@ -667,7 +667,7 @@ export const ProductDetailPage: React.FC = () => {
               onClick={() => setLightboxZoom(!lightboxZoom)}
             >
               <img
-                src={images[selectedImageIndex]?.image_url || images[0].image_url}
+                src={normalizeImageUrl(images[selectedImageIndex]?.image_url || images[0]?.image_url, PRODUCT_FALLBACK_IMAGE)}
                 alt={product.name_ar}
                 decoding="async"
                 onError={handleImageError}
@@ -691,7 +691,7 @@ export const ProductDetailPage: React.FC = () => {
                   }`}
                 >
                   <img
-                    src={img.image_url}
+                    src={normalizeImageUrl(img.image_url, PRODUCT_FALLBACK_IMAGE)}
                     alt=""
                     onError={handleImageError}
                     className="w-full h-full object-contain"

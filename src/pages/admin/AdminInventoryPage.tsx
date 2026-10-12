@@ -1,6 +1,7 @@
 import React, { useState, useMemo } from 'react';
 import { dbStore } from '../../services/dbStore';
 import { formatEGP, formatDateTime } from '../../utils/formatters';
+import { normalizeImageUrl, handleImageError, PRODUCT_FALLBACK_IMAGE } from '../../utils/imageUtils';
 import { Product, InventoryMovement } from '../../types';
 import { 
   Boxes, 
@@ -287,8 +288,9 @@ export const AdminInventoryPage: React.FC = () => {
                           <td className="p-3">
                             <div className="flex items-center gap-3">
                               <img
-                                src={p.images[0]?.image_url}
+                                src={normalizeImageUrl(p.images[0]?.image_url, PRODUCT_FALLBACK_IMAGE)}
                                 alt={p.name_ar}
+                                onError={handleImageError}
                                 className="w-10 h-10 object-cover rounded-lg border border-gray-200 shrink-0"
                               />
                               <div>
@@ -446,8 +448,9 @@ export const AdminInventoryPage: React.FC = () => {
 
             <div className="bg-gray-50 p-3 rounded-2xl flex items-center gap-3">
               <img
-                src={adjustingProduct.images[0]?.image_url}
+                src={normalizeImageUrl(adjustingProduct.images[0]?.image_url, PRODUCT_FALLBACK_IMAGE)}
                 alt={adjustingProduct.name_ar}
+                onError={handleImageError}
                 className="w-12 h-12 object-cover rounded-xl border border-gray-200 shrink-0"
               />
               <div>

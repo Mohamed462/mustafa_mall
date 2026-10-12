@@ -2,6 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { dbStore } from '../../services/dbStore';
 import { formatCurrencyEGP } from '../../utils/formatters';
+import { normalizeImageUrl, handleImageError, PRODUCT_FALLBACK_IMAGE } from '../../utils/imageUtils';
 import { Product } from '../../types';
 import { 
   Package, 
@@ -366,8 +367,9 @@ export const AdminProductsPage: React.FC = () => {
                       {/* Product Image */}
                       <td className="py-3 px-4">
                         <img
-                          src={product.images[0]?.image_url}
+                          src={normalizeImageUrl(product.images[0]?.image_url, PRODUCT_FALLBACK_IMAGE)}
                           alt=""
+                          onError={handleImageError}
                           className="w-12 h-12 object-contain rounded-xl border border-gray-100 bg-white p-1"
                         />
                       </td>

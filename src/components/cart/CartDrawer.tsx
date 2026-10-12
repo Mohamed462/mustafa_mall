@@ -4,6 +4,7 @@ import { Link } from 'react-router-dom';
 import { useCart, getProductMaxOrderLimit } from '../../context/CartContext';
 import { useStoreSettings } from '../../context/StoreSettingsContext';
 import { formatCurrencyEGP } from '../../utils/formatters';
+import { normalizeImageUrl, handleImageError, PRODUCT_FALLBACK_IMAGE } from '../../utils/imageUtils';
 import { X, Plus, Minus, Trash2, ShoppingBag, Truck, AlertCircle } from 'lucide-react';
 
 interface CartDrawerProps {
@@ -96,8 +97,9 @@ export const CartDrawer: React.FC<CartDrawerProps> = ({ isOpen, onClose }) => {
                 return (
                   <div key={`${item.product.id}-${item.variant?.id || 'base'}-${idx}`} className="flex gap-3 pb-4 border-b border-slate-200 last:border-b-0">
                     <img 
-                      src={imageSrc} 
+                      src={normalizeImageUrl(imageSrc, PRODUCT_FALLBACK_IMAGE)} 
                       alt={item.product.name_ar} 
+                      onError={handleImageError}
                       className="w-20 h-20 object-contain rounded-xl border border-slate-200 bg-slate-50 p-1 shrink-0" 
                     />
                     <div className="flex-1 flex flex-col justify-between">

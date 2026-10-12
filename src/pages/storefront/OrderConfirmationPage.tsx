@@ -3,7 +3,7 @@ import { useSearchParams, useParams, useNavigate, Link } from 'react-router-dom'
 import { dbStore } from '../../services/dbStore';
 import { useStoreSettings } from '../../context/StoreSettingsContext';
 import { formatCurrencyEGP, formatDateArabic, getWhatsAppUrl, normalizeArabicDigits } from '../../utils/formatters';
-import { handleImageError } from '../../utils/imageUtils';
+import { handleImageError, normalizeImageUrl, PRODUCT_FALLBACK_IMAGE } from '../../utils/imageUtils';
 import { OrderInvoiceModal } from '../../components/admin/OrderInvoiceModal';
 import { Order, OrderStatus } from '../../types';
 import { 
@@ -397,7 +397,7 @@ ${order.items.map((it, idx) => `• ${it.product_name_ar} (الكمية: ${it.qu
                 <div className="flex items-center gap-3">
                   {item.image_url && (
                     <img 
-                      src={item.image_url} 
+                      src={normalizeImageUrl(item.image_url, PRODUCT_FALLBACK_IMAGE)} 
                       alt="" 
                       onError={handleImageError}
                       className="w-12 h-12 object-contain rounded-lg border border-gray-100 p-1" 

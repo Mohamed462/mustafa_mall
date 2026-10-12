@@ -6,6 +6,7 @@ import { TextureButton } from '../common/TextureButton';
 import { dbStore } from '../../services/dbStore';
 
 import { useStoreSettings } from '../../context/StoreSettingsContext';
+import { normalizeImageUrl, handleImageError, PRODUCT_FALLBACK_IMAGE } from '../../utils/imageUtils';
 
 interface CategoryDiscoveryGridProps {
   categories: Category[];
@@ -81,7 +82,8 @@ export const CategoryDiscoveryGrid: React.FC<CategoryDiscoveryGridProps> = ({ ca
       <div className="sm:hidden flex items-center gap-3 overflow-x-auto pb-4 scrollbar-none snap-x mb-4">
         {sortedCategories.map((cat) => {
           const { url, isExternal } = getCategoryTarget(cat);
-          const bgImage = cat.image_url || CATEGORY_IMAGES[cat.slug] || 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?auto=format&fit=crop&w=600&q=80';
+          const rawBg = cat.image_url || CATEGORY_IMAGES[cat.slug] || 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?auto=format&fit=crop&w=600&q=80';
+          const bgImage = normalizeImageUrl(rawBg, '/brand-logo-transparent.webp');
 
           const bubbleContent = (
             <>
@@ -91,10 +93,7 @@ export const CategoryDiscoveryGrid: React.FC<CategoryDiscoveryGridProps> = ({ ca
                   alt={cat.name_ar}
                   className="w-full h-full object-cover rounded-full group-hover:scale-110 transition-transform duration-300"
                   loading="lazy"
-                  onError={(e) => {
-                    const target = e.currentTarget;
-                    target.src = '/brand-logo-transparent.webp';
-                  }}
+                  onError={(e) => handleImageError(e, '/brand-logo-transparent.webp')}
                 />
               </div>
               <span className="text-[11px] font-bold text-[#04383f] line-clamp-1 leading-tight group-hover:text-[#08606B]">
@@ -129,7 +128,8 @@ export const CategoryDiscoveryGrid: React.FC<CategoryDiscoveryGridProps> = ({ ca
       <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 sm:gap-6">
         {displayedCategories.map((cat) => {
           const { url, isExternal } = getCategoryTarget(cat);
-          const bgImage = cat.image_url || CATEGORY_IMAGES[cat.slug] || 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?auto=format&fit=crop&w=800&q=80';
+          const rawBg = cat.image_url || CATEGORY_IMAGES[cat.slug] || 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?auto=format&fit=crop&w=800&q=80';
+          const bgImage = normalizeImageUrl(rawBg, '/brand-logo-transparent.webp');
           const isPrintCenter = cat.department_key === 'print_center';
 
           // Determine if text overlay should be hidden for this specific card
@@ -150,10 +150,7 @@ export const CategoryDiscoveryGrid: React.FC<CategoryDiscoveryGridProps> = ({ ca
                   alt={cat.name_ar}
                   className="w-full h-full object-cover transition-transform duration-700 ease-out group-hover:scale-108"
                   loading="lazy"
-                  onError={(e) => {
-                    const target = e.currentTarget;
-                    target.src = '/brand-logo-transparent.webp';
-                  }}
+                  onError={(e) => handleImageError(e, '/brand-logo-transparent.webp')}
                 />
 
                 {/* Shimmer light sweep reflection on hover */}

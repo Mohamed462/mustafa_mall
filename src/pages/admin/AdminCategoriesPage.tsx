@@ -23,6 +23,7 @@ import {
   Check,
   Sparkles
 } from 'lucide-react';
+import { normalizeImageUrl, PRODUCT_FALLBACK_IMAGE, handleImageError } from '../../utils/imageUtils';
 
 const DEPARTMENTS: { key: DepartmentKey; label: string }[] = [
   { key: 'home_cleaning', label: 'المنزل والتنظيف' },
@@ -115,7 +116,7 @@ export const AdminCategoriesPage: React.FC = () => {
       slug: editingCategory.slug,
       department_key: editingCategory.department_key as any,
       description_ar: editingCategory.description_ar,
-      image_url: editingCategory.image_url,
+      image_url: editingCategory.image_url ? normalizeImageUrl(editingCategory.image_url, '') : '',
       custom_link: editingCategory.custom_link,
       hide_title: editingCategory.hide_title ?? false,
       sort_order: editingCategory.sort_order || 0,
@@ -143,7 +144,7 @@ export const AdminCategoriesPage: React.FC = () => {
     if (!quickAddCat || !productName.trim()) return;
 
     const defaultImg = 'https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=400&q=80';
-    const finalImg = productImage.trim() || defaultImg;
+    const finalImg = productImage.trim() ? normalizeImageUrl(productImage.trim(), defaultImg) : defaultImg;
     const generatedSlug = `product-${Date.now()}`;
 
     dbStore.saveProduct({

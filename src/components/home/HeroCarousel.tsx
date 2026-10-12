@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { Banner } from '../../types';
 import { ChevronRight, ChevronLeft } from 'lucide-react';
-import { handleImageError, BANNER_FALLBACK_IMAGE } from '../../utils/imageUtils';
+import { handleImageError, BANNER_FALLBACK_IMAGE, normalizeImageUrl } from '../../utils/imageUtils';
 
 interface HeroCarouselProps {
   banners: Banner[];
@@ -66,10 +66,10 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ banners }) => {
       {/* Responsive Image adapting seamlessly to mobile and desktop */}
       <picture className="w-full h-full block">
         {current.image_desktop_url && (
-          <source media="(min-width: 640px)" srcSet={current.image_desktop_url} />
+          <source media="(min-width: 640px)" srcSet={normalizeImageUrl(current.image_desktop_url, BANNER_FALLBACK_IMAGE)} />
         )}
         <img
-          src={current.image_mobile_url || current.image_desktop_url}
+          src={normalizeImageUrl(current.image_mobile_url || current.image_desktop_url, BANNER_FALLBACK_IMAGE)}
           alt={current.title_ar || 'بانر مول المصطفى'}
           onError={(e) => handleImageError(e, BANNER_FALLBACK_IMAGE)}
           fetchPriority="high"
@@ -171,7 +171,7 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ banners }) => {
                   <div className="bg-[#04383f] text-white text-[11px] font-bold px-3 py-1.5 rounded-xl shadow-lg border border-white/10 flex items-center gap-2 whitespace-nowrap">
                     {banner.image_mobile_url || banner.image_desktop_url ? (
                       <img 
-                        src={banner.image_mobile_url || banner.image_desktop_url} 
+                        src={normalizeImageUrl(banner.image_mobile_url || banner.image_desktop_url, BANNER_FALLBACK_IMAGE)} 
                         alt="" 
                         className="w-7 h-4 object-cover rounded-xs border border-white/20 shrink-0"
                       />

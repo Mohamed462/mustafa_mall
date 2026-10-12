@@ -4,6 +4,7 @@ import { useCart, getProductMaxOrderLimit } from '../../context/CartContext';
 import { useStoreSettings } from '../../context/StoreSettingsContext';
 import { Breadcrumbs } from '../../components/common/Breadcrumbs';
 import { formatCurrencyEGP } from '../../utils/formatters';
+import { normalizeImageUrl, handleImageError, PRODUCT_FALLBACK_IMAGE } from '../../utils/imageUtils';
 import { 
   ShoppingBag, 
   Trash2, 
@@ -131,8 +132,9 @@ export const CartPage: React.FC = () => {
                 <div key={`${item.product.id}-${idx}`} className="py-4 flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4">
                   <div className="flex items-center gap-4">
                     <img 
-                      src={imageSrc} 
+                      src={normalizeImageUrl(imageSrc, PRODUCT_FALLBACK_IMAGE)} 
                       alt={item.product.name_ar} 
+                      onError={handleImageError}
                       className="w-20 h-20 object-contain rounded-xl border border-gray-100 p-1 shrink-0" 
                     />
                     <div>

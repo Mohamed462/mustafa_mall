@@ -4,7 +4,7 @@ import { Product } from '../../types';
 import { useCart, getProductMaxOrderLimit } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { formatCurrencyEGP, calculateDiscountPercent } from '../../utils/formatters';
-import { handleImageError, PRODUCT_FALLBACK_IMAGE } from '../../utils/imageUtils';
+import { handleImageError, PRODUCT_FALLBACK_IMAGE, normalizeImageUrl } from '../../utils/imageUtils';
 import { Heart, Plus, Check, ShoppingBag } from 'lucide-react';
 import { TextureButton } from './TextureButton';
 
@@ -26,8 +26,8 @@ export const ProductCard: React.FC<ProductCardProps> = ({ product }) => {
   const inWishlist = isInWishlist(product.id);
   const hasVariants = product.variants && product.variants.length > 0;
   
-  const primaryImage = product.images[0]?.image_url || PRODUCT_FALLBACK_IMAGE;
-  const secondaryImage = product.images[1]?.image_url || primaryImage;
+  const primaryImage = normalizeImageUrl(product.images[0]?.image_url, PRODUCT_FALLBACK_IMAGE);
+  const secondaryImage = product.images[1]?.image_url ? normalizeImageUrl(product.images[1]?.image_url, primaryImage) : primaryImage;
 
   const handleAddToCart = (e: React.MouseEvent) => {
     e.preventDefault();

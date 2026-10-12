@@ -4,7 +4,7 @@ import { dbStore } from '../../services/dbStore';
 import { useAuth } from '../../context/AuthContext';
 import { Breadcrumbs } from '../../components/common/Breadcrumbs';
 import { formatCurrencyEGP, formatDateArabic, normalizeEgyptianPhone, normalizeArabicDigits, getOrderStatusBadge } from '../../utils/formatters';
-import { handleImageError } from '../../utils/imageUtils';
+import { handleImageError, normalizeImageUrl, PRODUCT_FALLBACK_IMAGE } from '../../utils/imageUtils';
 import { Package, Clock, CheckCircle2, ShoppingBag, LogIn, Search, FileText, ArrowLeft } from 'lucide-react';
 
 export const CustomerOrdersPage: React.FC = () => {
@@ -181,7 +181,7 @@ export const CustomerOrdersPage: React.FC = () => {
                     <div className="flex items-center gap-3">
                       {item.image_url && (
                         <img 
-                          src={item.image_url} 
+                          src={normalizeImageUrl(item.image_url, PRODUCT_FALLBACK_IMAGE)} 
                           alt="" 
                           onError={handleImageError}
                           className="w-12 h-12 object-contain rounded-lg border border-gray-100 p-1" 

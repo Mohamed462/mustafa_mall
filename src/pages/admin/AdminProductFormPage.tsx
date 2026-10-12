@@ -3,7 +3,7 @@ import { useParams, useNavigate, Link } from 'react-router-dom';
 import { dbStore } from '../../services/dbStore';
 import { Product, ProductAttribute, ProductVariant, ProductImage } from '../../types';
 import { ArrowLeft, Save, Plus, Trash2, Image, Layers, Sparkles, Upload, FileImage, CheckCircle2, AlertCircle, X } from 'lucide-react';
-import { handleImageError } from '../../utils/imageUtils';
+import { handleImageError, normalizeImageUrl, PRODUCT_FALLBACK_IMAGE } from '../../utils/imageUtils';
 
 interface ImageMeta {
   width: number;
@@ -310,7 +310,7 @@ export const AdminProductFormPage: React.FC = () => {
       finalImages.push({
         id: `img-${Date.now()}-primary`,
         product_id: id || '',
-        image_url: imageUrl.trim(),
+        image_url: normalizeImageUrl(imageUrl.trim(), PRODUCT_FALLBACK_IMAGE),
         is_primary: true,
         sort_order: 1
       });
@@ -321,7 +321,7 @@ export const AdminProductFormPage: React.FC = () => {
         finalImages.push({
           id: `img-${Date.now()}-sec-${idx}`,
           product_id: id || '',
-          image_url: imgUrl.trim(),
+          image_url: normalizeImageUrl(imgUrl.trim(), PRODUCT_FALLBACK_IMAGE),
           is_primary: finalImages.length === 0,
           sort_order: finalImages.length + 1
         });

@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { dbStore } from '../../services/dbStore';
 import { Order, Product, PrintRequest } from '../../types';
 import { formatCurrencyEGP, formatDateArabic } from '../../utils/formatters';
+import { normalizeImageUrl, handleImageError, PRODUCT_FALLBACK_IMAGE } from '../../utils/imageUtils';
 import { 
   ShoppingCart, 
   Package, 
@@ -273,7 +274,12 @@ export const AdminDashboardPage: React.FC = () => {
                 {lowStockProducts.map((p) => (
                   <tr key={p.id}>
                     <td className="py-2.5 px-3 font-bold text-gray-900 flex items-center gap-2">
-                      <img src={p.images[0]?.image_url} alt="" className="w-8 h-8 rounded object-cover" />
+                      <img 
+                        src={normalizeImageUrl(p.images[0]?.image_url, PRODUCT_FALLBACK_IMAGE)} 
+                        alt="" 
+                        onError={handleImageError}
+                        className="w-8 h-8 rounded object-cover" 
+                      />
                       <span>{p.name_ar}</span>
                     </td>
                     <td className="py-2.5 px-3 font-mono text-gray-500">{p.sku}</td>

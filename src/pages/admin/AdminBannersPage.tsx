@@ -14,6 +14,7 @@ import {
   ExternalLink,
   Sparkles
 } from 'lucide-react';
+import { normalizeImageUrl, BANNER_FALLBACK_IMAGE, handleImageError } from '../../utils/imageUtils';
 
 export const AdminBannersPage: React.FC = () => {
   const [banners, setBanners] = useState<Banner[]>(() => dbStore.getBanners());
@@ -74,12 +75,15 @@ export const AdminBannersPage: React.FC = () => {
     e.preventDefault();
     if (!imageDesktopUrl) return;
 
+    const normalizedDesktop = normalizeImageUrl(imageDesktopUrl, BANNER_FALLBACK_IMAGE);
+    const normalizedMobile = imageMobileUrl ? normalizeImageUrl(imageMobileUrl, normalizedDesktop) : normalizedDesktop;
+
     dbStore.saveBanner({
       id: editingBanner?.id,
       title_ar: titleAr,
       subtitle_ar: subtitleAr,
-      image_desktop_url: imageDesktopUrl,
-      image_mobile_url: imageMobileUrl || imageDesktopUrl,
+      image_desktop_url: normalizedDesktop,
+      image_mobile_url: normalizedMobile,
       link_url: linkUrl,
       cta_text_ar: ctaTextAr,
       sort_order: Number(sortOrder),
@@ -123,8 +127,9 @@ export const AdminBannersPage: React.FC = () => {
               {/* Banner visual preview */}
               <div className="relative aspect-3/1 bg-gray-100 overflow-hidden group">
                 <img
-                  src={b.image_desktop_url}
+                  src={normalizeImageUrl(b.image_desktop_url, BANNER_FALLBACK_IMAGE)}
                   alt={b.title_ar || 'بانر'}
+                  onError={(e) => handleImageError(e, BANNER_FALLBACK_IMAGE)}
                   className="w-full h-full object-cover"
                 />
                 {b.show_overlay_text !== false && (b.title_ar || b.subtitle_ar) ? (

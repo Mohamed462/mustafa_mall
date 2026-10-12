@@ -6,7 +6,7 @@ import { useAuth } from '../../context/AuthContext';
 import { dbStore } from '../../services/dbStore';
 import { Breadcrumbs } from '../../components/common/Breadcrumbs';
 import { formatCurrencyEGP, normalizeArabicDigits } from '../../utils/formatters';
-import { handleImageError } from '../../utils/imageUtils';
+import { handleImageError, normalizeImageUrl, PRODUCT_FALLBACK_IMAGE } from '../../utils/imageUtils';
 import { PaymentMethod } from '../../types';
 import { 
   ShieldCheck, 
@@ -479,7 +479,7 @@ export const CheckoutPage: React.FC = () => {
                   <div key={idx} className="flex items-center justify-between text-xs pb-2 border-b border-gray-50">
                     <div className="flex items-center gap-2 max-w-[70%]">
                       <img 
-                        src={item.variant?.image_url || item.product.images[0]?.image_url} 
+                        src={normalizeImageUrl(item.variant?.image_url || item.product.images[0]?.image_url, PRODUCT_FALLBACK_IMAGE)} 
                         alt="" 
                         onError={handleImageError}
                         className="w-10 h-10 object-contain rounded-lg border border-gray-100" 

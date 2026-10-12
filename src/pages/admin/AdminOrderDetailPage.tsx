@@ -5,6 +5,7 @@ import { dbStore } from '../../services/dbStore';
 import { formatCurrencyEGP, formatDateArabic, getWhatsAppUrl, getOrderStatusBadge } from '../../utils/formatters';
 import { useStoreSettings } from '../../context/StoreSettingsContext';
 import { OrderInvoiceModal } from '../../components/admin/OrderInvoiceModal';
+import { normalizeImageUrl, handleImageError, PRODUCT_FALLBACK_IMAGE } from '../../utils/imageUtils';
 import { 
   ArrowLeft, 
   Printer, 
@@ -236,7 +237,12 @@ export const AdminOrderDetailPage: React.FC = () => {
             <div key={idx} className="py-3 flex items-center justify-between text-xs">
               <div className="flex items-center gap-3">
                 {item.image_url && (
-                  <img src={item.image_url} alt="" className="w-12 h-12 object-contain rounded-xl border border-gray-100 bg-gray-50 p-1" />
+                  <img 
+                    src={normalizeImageUrl(item.image_url, PRODUCT_FALLBACK_IMAGE)} 
+                    alt="" 
+                    onError={handleImageError}
+                    className="w-12 h-12 object-contain rounded-xl border border-gray-100 bg-gray-50 p-1" 
+                  />
                 )}
                 <div>
                   <strong className="text-gray-900 block text-xs">{item.product_name_ar}</strong>

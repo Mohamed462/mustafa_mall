@@ -28,6 +28,73 @@ export const BANNER_FALLBACK_IMAGE = `data:image/svg+xml;utf8,${encodeURICompone
 `.trim())}`;
 
 /**
+ * Extract Google Drive file ID from any Google Drive URL format:
+ * - /file/d/{id} (including multi-account /file/u/0/d/{id}, /file/u/1/d/{id})
+ * - /d/{id}
+ * - /document/d/{id}, /spreadsheets/d/{id}, etc.
+ * - ?id={id} or &id={id}
+ * - /uc?id={id}
+ * - /open?id={id}
+ * - /thumbnail?id={id}
+ * Explicitly rejects Google Drive folders (/folders/) since they cannot be rendered as images.
+ */
+export function extractGoogleDriveFileId(url?: string | null): string | null {
+  if (!url || typeof url !== 'string') return null;
+  const trimmed = url.trim();
+  if (!trimmed) return null;
+
+  // Folder URLs cannot be displayed as images
+  if (trimmed.includes('/folders/')) return null;
+
+  // 1. Any path containing /d/{fileId}
+  const pathMatch = trimmed.match(/\/d\/([a-zA-Z0-9_-]{15,})/i);
+  if (pathMatch && pathMatch[1]) {
+    return pathMatch[1];
+  }
+
+  // 2. Query parameter id=FILE_ID or &id=FILE_ID
+  const idMatch = trimmed.match(/[?&]id=([a-zA-Z0-9_-]{15,})/i);
+  if (idMatch && idMatch[1]) {
+    return idMatch[1];
+  }
+
+  return null;
+}
+
+/**
+ * Normalizes any image URL. If the user pasted a Google Drive sharing link,
+ * converts it into a direct displayable Google CDN endpoint (`lh3.googleusercontent.com/d/{id}`),
+ * which bypasses OpaqueResponseBlocking (CORB) and HTML preview wrappers.
+ */
+export function normalizeImageUrl(url?: string | null, fallback: string = PRODUCT_FALLBACK_IMAGE): string {
+  if (!url || typeof url !== 'string') return fallback;
+  const trimmed = url.trim();
+  if (!trimmed) return fallback;
+
+  // Already a direct Google CDN link
+  if (trimmed.includes('lh3.googleusercontent.com/d/')) {
+    return trimmed;
+  }
+
+  // Reject folder URLs immediately
+  if (trimmed.includes('drive.google.com') && trimmed.includes('/folders/')) {
+    return fallback;
+  }
+
+  // Check if it's a Google Drive link
+  if (trimmed.includes('drive.google.com') || trimmed.includes('docs.google.com')) {
+    const fileId = extractGoogleDriveFileId(trimmed);
+    if (fileId) {
+      // lh3.googleusercontent.com serves direct static image bytes without CORS/CORB blocks
+      return `https://lh3.googleusercontent.com/d/${fileId}`;
+    }
+    return fallback;
+  }
+
+  return trimmed;
+}
+
+/**
  * Handles image loading error safely, preventing infinite recursive firing
  * by stripping the onerror callback before assigning the fallback.
  */
@@ -39,3 +106,4 @@ export function handleImageError(
   target.onerror = null;
   target.src = fallbackUrl;
 }
+

@@ -20,6 +20,7 @@ import {
   UserProfile,
   GovernorateShippingRate
 } from '../types';
+import { normalizeImageUrl, BANNER_FALLBACK_IMAGE, PRODUCT_FALLBACK_IMAGE } from '../utils/imageUtils';
 import { 
   INITIAL_CATEGORIES, 
   INITIAL_BRANDS, 
@@ -562,14 +563,24 @@ export const dbStore = {
 
   // CATEGORIES
   getCategories: (): Category[] => {
-    return (state.categories || []).filter(c => !c.parent_id);
+    const normalizeCat = (c: Category): Category => ({
+      ...c,
+      image_url: c.image_url ? normalizeImageUrl(c.image_url, '') : c.image_url,
+      children: c.children ? c.children.map(normalizeCat) : []
+    });
+    return (state.categories || []).filter(c => !c.parent_id).map(normalizeCat);
   },
   getCategoryBySlug: (slug: string): Category | undefined => {
+    const normalizeCat = (c: Category): Category => ({
+      ...c,
+      image_url: c.image_url ? normalizeImageUrl(c.image_url, '') : c.image_url,
+      children: c.children ? c.children.map(normalizeCat) : []
+    });
     for (const cat of state.categories) {
-      if (cat.slug === slug) return cat;
+      if (cat.slug === slug) return normalizeCat(cat);
       if (cat.children) {
         const child = cat.children.find(c => c.slug === slug);
-        if (child) return child;
+        if (child) return normalizeCat(child);
       }
     }
     return undefined;
@@ -585,7 +596,7 @@ export const dbStore = {
       slug: category.slug,
       department_key: category.department_key,
       description_ar: category.description_ar || '',
-      image_url: category.image_url || '',
+      image_url: category.image_url ? normalizeImageUrl(category.image_url, '') : '',
       icon_name: category.icon_name || 'ShoppingBag',
       sort_order: category.sort_order ?? 0,
       is_active: category.is_active ?? true,
@@ -673,7 +684,7 @@ export const dbStore = {
       name_ar: brand.name_ar,
       name_en: brand.name_en,
       slug: brand.slug,
-      logo_url: brand.logo_url,
+      logo_url: brand.logo_url ? normalizeImageUrl(brand.logo_url, '') : brand.logo_url,
       is_featured: brand.is_featured ?? false,
       is_active: brand.is_active ?? true,
     };
@@ -689,13 +700,47 @@ export const dbStore = {
 
   // PRODUCTS
   getProducts: (): Product[] => {
-    return [...state.products];
+    return state.products.map(p => ({
+      ...p,
+      images: (p.images || []).map(img => ({
+        ...img,
+        image_url: normalizeImageUrl(img.image_url, PRODUCT_FALLBACK_IMAGE)
+      })),
+      variants: (p.variants || []).map(v => ({
+        ...v,
+        image_url: v.image_url ? normalizeImageUrl(v.image_url, PRODUCT_FALLBACK_IMAGE) : v.image_url
+      }))
+    }));
   },
   getProductById: (id: string): Product | undefined => {
-    return state.products.find(p => p.id === id);
+    const p = state.products.find(prod => prod.id === id);
+    if (!p) return undefined;
+    return {
+      ...p,
+      images: (p.images || []).map(img => ({
+        ...img,
+        image_url: normalizeImageUrl(img.image_url, PRODUCT_FALLBACK_IMAGE)
+      })),
+      variants: (p.variants || []).map(v => ({
+        ...v,
+        image_url: v.image_url ? normalizeImageUrl(v.image_url, PRODUCT_FALLBACK_IMAGE) : v.image_url
+      }))
+    };
   },
   getProductBySlug: (slug: string): Product | undefined => {
-    return state.products.find(p => p.slug === slug);
+    const p = state.products.find(prod => prod.slug === slug);
+    if (!p) return undefined;
+    return {
+      ...p,
+      images: (p.images || []).map(img => ({
+        ...img,
+        image_url: normalizeImageUrl(img.image_url, PRODUCT_FALLBACK_IMAGE)
+      })),
+      variants: (p.variants || []).map(v => ({
+        ...v,
+        image_url: v.image_url ? normalizeImageUrl(v.image_url, PRODUCT_FALLBACK_IMAGE) : v.image_url
+      }))
+    };
   },
   saveProduct: (product: Partial<Product> & { name_ar: string; slug: string; sku: string; price_egp: number; category_id: string }): Product => {
     const isNew = !product.id;
@@ -703,6 +748,10 @@ export const dbStore = {
     const now = new Date().toISOString();
 
     const existing = state.products.find(p => p.id === prodId);
+
+    const rawImages = product.images?.length ? product.images : [
+      { id: `img-${Date.now()}`, product_id: prodId, image_url: 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?auto=format&fit=crop&w=600&q=80', is_primary: true, sort_order: 1 }
+    ];
 
     const fullProduct: Product = {
       id: prodId,
@@ -725,11 +774,15 @@ export const dbStore = {
       allow_backorder: product.allow_backorder ?? false,
       views_count: existing?.views_count || 0,
       sales_count: existing?.sales_count || 0,
-      images: product.images?.length ? product.images : [
-        { id: `img-${Date.now()}`, product_id: prodId, image_url: 'https://images.unsplash.com/photo-1546868871-7041f2a55e12?auto=format&fit=crop&w=600&q=80', is_primary: true, sort_order: 1 }
-      ],
+      images: rawImages.map(img => ({
+        ...img,
+        image_url: normalizeImageUrl(img.image_url, PRODUCT_FALLBACK_IMAGE)
+      })),
       attributes: product.attributes || [],
-      variants: product.variants || [],
+      variants: (product.variants || []).map(v => ({
+        ...v,
+        image_url: v.image_url ? normalizeImageUrl(v.image_url, PRODUCT_FALLBACK_IMAGE) : v.image_url
+      })),
       created_at: existing?.created_at || now,
       updated_at: now,
     };
@@ -1328,16 +1381,22 @@ export const dbStore = {
 
   // BANNERS & SECTIONS
   getBanners: (): Banner[] => {
-    return [...state.banners];
+    return state.banners.map(b => ({
+      ...b,
+      image_desktop_url: normalizeImageUrl(b.image_desktop_url, BANNER_FALLBACK_IMAGE),
+      image_mobile_url: normalizeImageUrl(b.image_mobile_url || b.image_desktop_url, BANNER_FALLBACK_IMAGE)
+    }));
   },
   saveBanner: (banner: Partial<Banner> & { image_desktop_url: string; link_url: string }): Banner => {
     const bannerId = banner.id || `b-${Date.now()}`;
+    const normalizedDesktop = normalizeImageUrl(banner.image_desktop_url, BANNER_FALLBACK_IMAGE);
+    const normalizedMobile = banner.image_mobile_url ? normalizeImageUrl(banner.image_mobile_url, normalizedDesktop) : normalizedDesktop;
     const newBanner: Banner = {
       id: bannerId,
       title_ar: banner.title_ar,
       subtitle_ar: banner.subtitle_ar,
-      image_desktop_url: banner.image_desktop_url,
-      image_mobile_url: banner.image_mobile_url || banner.image_desktop_url,
+      image_desktop_url: normalizedDesktop,
+      image_mobile_url: normalizedMobile,
       link_url: banner.link_url,
       cta_text_ar: banner.cta_text_ar,
       sort_order: banner.sort_order ?? 0,

@@ -1,6 +1,6 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { createPortal } from 'react-dom';
-import { Link, useNavigate } from 'react-router-dom';
+import { Link, useNavigate, useLocation } from 'react-router-dom';
 import { useCart } from '../../context/CartContext';
 import { useWishlist } from '../../context/WishlistContext';
 import { useStoreSettings } from '../../context/StoreSettingsContext';
@@ -9,8 +9,8 @@ import { CategoryMegaMenu } from './CategoryMegaMenu';
 import { CartDrawer } from '../cart/CartDrawer';
 import { dbStore } from '../../services/dbStore';
 import { arabicFuzzyMatch } from '../../utils/searchNormalization';
-import { formatCurrencyEGP } from '../../utils/formatters';
-import { handleImageError } from '../../utils/imageUtils';
+import { formatCurrencyEGP, getWhatsAppUrl } from '../../utils/formatters';
+import { handleImageError, normalizeImageUrl, PRODUCT_FALLBACK_IMAGE } from '../../utils/imageUtils';
 import { Product, NavItem } from '../../types';
 import { 
   Search, 
@@ -25,11 +25,14 @@ import {
   Percent, 
   ShieldCheck, 
   ExternalLink,
-  Check 
+  Check,
+  Phone,
+  MessageCircle
 } from 'lucide-react';
 
 export const Header: React.FC = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { itemCount, selectedGovernorate, setSelectedGovernorate } = useCart();
   const { wishlistCount } = useWishlist();
   const { settings, categories } = useStoreSettings();
@@ -40,6 +43,39 @@ export const Header: React.FC = () => {
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const [isLocationModalOpen, setIsLocationModalOpen] = useState(false);
   const [govSearch, setGovSearch] = useState('');
+
+  // Auto-close drawers & modals on route transition
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+    setIsLocationModalOpen(false);
+    setIsMegaMenuOpen(false);
+  }, [location.pathname, location.search]);
+
+  // Prevent background scroll when mobile menu or modal is open
+  useEffect(() => {
+    if (isMobileMenuOpen || isLocationModalOpen) {
+      const originalOverflow = document.body.style.overflow;
+      document.body.style.overflow = 'hidden';
+      return () => {
+        document.body.style.overflow = originalOverflow;
+      };
+    }
+  }, [isMobileMenuOpen, isLocationModalOpen]);
+
+  // Handle Escape key to dismiss menus & modals
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') {
+        setIsMobileMenuOpen(false);
+        setIsLocationModalOpen(false);
+        setIsMegaMenuOpen(false);
+      }
+    };
+    if (isMobileMenuOpen || isLocationModalOpen || isMegaMenuOpen) {
+      window.addEventListener('keydown', handleKeyDown);
+      return () => window.removeEventListener('keydown', handleKeyDown);
+    }
+  }, [isMobileMenuOpen, isLocationModalOpen, isMegaMenuOpen]);
 
   // Dynamic Navigation Items
   const [navItems, setNavItems] = useState<NavItem[]>(() => dbStore.getNavItems());
@@ -319,7 +355,7 @@ export const Header: React.FC = () => {
                       >
                         <div className="flex items-center gap-3">
                           <img 
-                            src={p.images[0]?.image_url} 
+                            src={normalizeImageUrl(p.images[0]?.image_url, PRODUCT_FALLBACK_IMAGE)} 
                             alt={p.name_ar} 
                             onError={handleImageError}
                             className="w-10 h-10 object-cover rounded border border-[rgba(17,21,26,0.11)] shrink-0" 
@@ -484,7 +520,7 @@ export const Header: React.FC = () => {
                     >
                       <div className="flex items-center gap-2.5 min-w-0">
                         <img 
-                          src={p.images[0]?.image_url} 
+                          src={normalizeImageUrl(p.images[0]?.image_url, PRODUCT_FALLBACK_IMAGE)} 
                           alt={p.name_ar} 
                           onError={handleImageError}
                           className="w-9 h-9 object-cover rounded border border-[rgba(17,21,26,0.11)] shrink-0" 
@@ -610,46 +646,81 @@ export const Header: React.FC = () => {
         />
       </nav>
 
-      {/* Mobile Navigation Drawer */}
-      {isMobileMenuOpen && (
-        <div className="lg:hidden fixed inset-0 z-50 overflow-hidden">
-          <div className="absolute inset-0 bg-black/60" onClick={() => setIsMobileMenuOpen(false)} />
-          <div className="fixed inset-y-0 start-0 max-w-xs w-full bg-white text-[#04383f] shadow-2xl flex flex-col z-50">
+      {/* Mobile Navigation Drawer (Luxury Full-Height Slide-Out Portal) */}
+      {isMobileMenuOpen && createPortal(
+        <div className="lg:hidden fixed inset-0 z-[100] overflow-hidden font-arabic" role="dialog" aria-modal="true" aria-label="القائمة الرئيسية">
+          {/* Backdrop with Blur */}
+          <div 
+            className="fixed inset-0 bg-black/60 backdrop-blur-xs transition-opacity duration-300 animate-fade-in" 
+            onClick={() => setIsMobileMenuOpen(false)} 
+            aria-hidden="true"
+          />
+          
+          {/* Full-Height Drawer Panel with smooth entrance animation */}
+          <div className="fixed inset-y-0 start-0 w-[85vw] max-w-sm bg-white text-[#04383f] shadow-2xl flex flex-col z-10 animate-drawer-slide">
             {/* Drawer Header */}
-            <div className="p-4 bg-[#04383f] text-white flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <img src="/brand-logo-transparent.webp" alt="مول المصطفى" className="h-9 w-auto object-contain" />
-                <span className="font-sans font-black text-sm text-white">مول المصطفى</span>
-              </div>
-              <button 
+            <div className="p-4 bg-gradient-to-r from-[#04383f] to-[#08606B] text-white flex items-center justify-between shrink-0 shadow-xs">
+              <Link 
+                to="/" 
                 onClick={() => setIsMobileMenuOpen(false)}
-                className="p-1 rounded text-gray-300 hover:text-white"
+                className="flex items-center gap-2.5"
+              >
+                <img src="/brand-logo-transparent.webp" alt="مول المصطفى" className="h-10 w-auto object-contain drop-shadow-sm" />
+                <div>
+                  <span className="font-sans font-black text-sm text-white block leading-tight">مول المصطفى</span>
+                  <span className="text-[10px] text-[#00D2D3] font-medium block">وجهتك الأولى للتسوق والطباعة</span>
+                </div>
+              </Link>
+              <button 
+                type="button"
+                onClick={() => setIsMobileMenuOpen(false)}
+                className="p-2 rounded-xl text-white/80 hover:text-white hover:bg-white/15 transition-colors cursor-pointer"
                 aria-label="إغلاق القائمة"
               >
                 <X className="w-5 h-5" />
               </button>
             </div>
 
-            {/* Drawer Navigation List */}
-            <div className="flex-1 overflow-y-auto p-4 space-y-4 text-right">
+            {/* Drawer Navigation List with smooth scrolling */}
+            <div className="flex-1 overflow-y-auto overscroll-contain p-4 space-y-4 text-right">
               {/* Account Quick Card in Drawer */}
               {isAuthenticated ? (
-                <Link
-                  to="/account"
-                  onClick={() => setIsMobileMenuOpen(false)}
-                  className="flex items-center justify-between p-3 bg-[#f3f4f6] rounded-xl border border-[rgba(17,21,26,0.11)] text-[#04383f] font-bold text-xs"
-                >
-                  <div className="flex items-center gap-2.5">
-                    <div className="w-8 h-8 rounded-full bg-[#08606B] text-white flex items-center justify-center font-black">
-                      {currentUser?.name?.charAt(0) || 'م'}
+                <div className="p-3.5 bg-gradient-to-br from-[#f8fafb] to-[#f0f4f6] rounded-2xl border border-[rgba(8,96,107,0.15)] shadow-xs">
+                  <div className="flex items-center justify-between mb-2">
+                    <div className="flex items-center gap-2.5">
+                      <div className="w-9 h-9 rounded-full bg-[#08606B] text-white flex items-center justify-center font-black shadow-xs">
+                        {currentUser?.name?.charAt(0) || 'م'}
+                      </div>
+                      <div>
+                        <span className="block text-xs font-black text-[#04383f]">{currentUser?.name}</span>
+                        <span className="text-[10px] text-[#5f6870] font-medium">{currentUser?.phone}</span>
+                      </div>
                     </div>
-                    <div>
-                      <span className="block">{currentUser?.name}</span>
-                      <span className="text-[10px] text-[#687280] font-normal">{currentUser?.phone}</span>
-                    </div>
+                    {isAdmin && (
+                      <span className="text-[9px] bg-[#00D2D3]/20 text-[#08606B] font-black px-2 py-0.5 rounded-full border border-[#00D2D3]/40">
+                        إدارة
+                      </span>
+                    )}
                   </div>
-                  <span className="text-[11px] text-[#08606B]">حسابي ←</span>
-                </Link>
+                  <div className="grid grid-cols-2 gap-2 pt-2 border-t border-[rgba(17,21,26,0.06)]">
+                    <Link
+                      to="/account"
+                      onClick={() => setIsMobileMenuOpen(false)}
+                      className="text-center py-1.5 px-2 bg-white rounded-xl text-[11px] font-bold text-[#08606B] hover:bg-[#e6f4f5] border border-slate-200 transition-colors"
+                    >
+                      حسابي وطلباتي
+                    </Link>
+                    {isAdmin && (
+                      <Link
+                        to="/admin"
+                        onClick={() => setIsMobileMenuOpen(false)}
+                        className="text-center py-1.5 px-2 bg-[#04383f] text-white rounded-xl text-[11px] font-bold hover:bg-[#08606B] transition-colors"
+                      >
+                        لوحة التحكم
+                      </Link>
+                    )}
+                  </div>
+                </div>
               ) : (
                 <button
                   type="button"
@@ -657,62 +728,100 @@ export const Header: React.FC = () => {
                     setIsMobileMenuOpen(false);
                     openAuthModal('login');
                   }}
-                  className="w-full flex items-center justify-between p-3 bg-[#08606B] text-white rounded-xl font-bold text-xs shadow-xs"
+                  className="w-full flex items-center justify-between p-3.5 bg-gradient-to-r from-[#04383f] to-[#08606B] text-white rounded-2xl font-bold text-xs shadow-md hover:shadow-lg transition-all cursor-pointer"
                 >
-                  <div className="flex items-center gap-2">
-                    <User className="w-4 h-4" />
-                    <span>تسجيل الدخول / إنشاء حساب</span>
+                  <div className="flex items-center gap-2.5">
+                    <div className="w-8 h-8 rounded-full bg-white/15 flex items-center justify-center">
+                      <User className="w-4 h-4 text-[#00D2D3]" />
+                    </div>
+                    <div className="text-right">
+                      <span className="block font-bold">تسجيل الدخول / إنشاء حساب</span>
+                      <span className="text-[10px] text-gray-200 font-normal">لمتابعة طلباتك وتجميع النقاط</span>
+                    </div>
                   </div>
-                  <span className="text-[11px]">دخول ←</span>
+                  <span className="text-xs font-black text-[#00D2D3]">دخول ←</span>
                 </button>
               )}
-              {/* Special Print Center Button */}
-              <Link
-                to="/print-center"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center justify-between p-3 bg-[rgba(8,96,107,0.08)] border border-[rgba(8,96,107,0.22)] rounded-xl text-[#08606B] font-bold text-xs"
-              >
-                <div className="flex items-center gap-2">
-                  <Printer className="w-4 h-4 text-[#08606B]" />
-                  <span>مركز الطباعة المتخصص</span>
-                </div>
-                <span className="text-[10px] bg-[#08606B] text-white px-2 py-0.5 rounded-full">خدمي</span>
-              </Link>
 
-              {/* Special Offers Button */}
-              <Link
-                to="/offers"
-                onClick={() => setIsMobileMenuOpen(false)}
-                className="flex items-center justify-between p-3 bg-[#FDF2EB] border border-[#FBE4D7] rounded-xl text-[#04383f] font-bold text-xs"
-              >
-                <div className="flex items-center gap-2">
-                  <Percent className="w-4 h-4 text-[#00D2D3]" />
+              {/* Special Services Quick Actions */}
+              <div className="grid grid-cols-2 gap-2.5">
+                {/* Special Print Center Button */}
+                <Link
+                  to="/print-center"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex flex-col items-center justify-center p-3 bg-[rgba(8,96,107,0.06)] hover:bg-[rgba(8,96,107,0.12)] border border-[rgba(8,96,107,0.22)] rounded-2xl text-[#08606B] font-bold text-xs transition-all text-center gap-1.5"
+                >
+                  <div className="w-8 h-8 rounded-full bg-white shadow-xs flex items-center justify-center">
+                    <Printer className="w-4 h-4 text-[#08606B]" />
+                  </div>
+                  <span>مركز الطباعة</span>
+                  <span className="text-[9px] bg-[#08606B] text-white px-2 py-0.5 rounded-full font-bold">هندسي ورقمي</span>
+                </Link>
+
+                {/* Special Offers Button */}
+                <Link
+                  to="/offers"
+                  onClick={() => setIsMobileMenuOpen(false)}
+                  className="flex flex-col items-center justify-center p-3 bg-[#FDF2EB] hover:bg-[#fae6db] border border-[#FBE4D7] rounded-2xl text-[#04383f] font-bold text-xs transition-all text-center gap-1.5"
+                >
+                  <div className="w-8 h-8 rounded-full bg-white shadow-xs flex items-center justify-center">
+                    <Percent className="w-4 h-4 text-[#00D2D3]" />
+                  </div>
                   <span>العروض والتخفيضات</span>
-                </div>
-                <span className="text-[10px] bg-[#00D2D3] text-white px-2 py-0.5 rounded-full font-black">خصومات</span>
-              </Link>
+                  <span className="text-[9px] bg-[#00D2D3] text-white px-2 py-0.5 rounded-full font-black">خصومات حصرية</span>
+                </Link>
+              </div>
 
-              {/* Categories */}
-              <div>
-                <h4 className="text-xs font-bold text-[#687280] uppercase mb-2">أقسام المتجر</h4>
+              {/* Location quick-switch button inside mobile drawer */}
+              <button
+                type="button"
+                onClick={() => {
+                  setIsMobileMenuOpen(false);
+                  setIsLocationModalOpen(true);
+                }}
+                className="w-full flex items-center justify-between p-3 bg-slate-50 hover:bg-slate-100 border border-slate-200 rounded-xl text-xs font-bold text-[#04383f] transition-colors cursor-pointer"
+              >
+                <div className="flex items-center gap-2">
+                  <MapPin className="w-4 h-4 text-[#08606B]" />
+                  <span>توصيل إلى: {selectedGovernorate || 'القاهرة'}</span>
+                </div>
+                <span className="text-[10px] text-[#08606B]">تغيير 📍</span>
+              </button>
+
+              {/* Categories Section */}
+              <div className="pt-2">
+                <div className="flex items-center justify-between mb-2 pb-1.5 border-b border-slate-100">
+                  <h4 className="text-xs font-black text-[#04383f]">أقسام المتجر الرئيسية</h4>
+                  <Link 
+                    to="/shop" 
+                    onClick={() => setIsMobileMenuOpen(false)} 
+                    className="text-[11px] text-[#08606B] font-bold hover:underline"
+                  >
+                    عرض الكل ←
+                  </Link>
+                </div>
                 <div className="space-y-1">
                   {categories.map((cat) => (
-                    <div key={cat.id} className="border-b border-[rgba(17,21,26,0.11)]/60 pb-1">
+                    <div key={cat.id} className="border-b border-slate-100/80 pb-1">
                       <Link
                         to={cat.department_key === 'print_center' ? '/print-center' : `/category/${cat.slug}`}
                         onClick={() => setIsMobileMenuOpen(false)}
-                        className="flex items-center justify-between py-2 text-xs font-bold text-[#04383f] hover:text-[#08606B]"
+                        className="flex items-center justify-between py-2.5 px-2 rounded-xl text-xs font-bold text-[#04383f] hover:bg-slate-50 hover:text-[#08606B] transition-colors"
                       >
-                        <span>{cat.name_ar}</span>
+                        <span className="flex items-center gap-2">
+                          <span className="w-1.5 h-1.5 rounded-full bg-[#08606B]/40" />
+                          {cat.name_ar}
+                        </span>
+                        <span className="text-gray-400 text-xs">←</span>
                       </Link>
                       {cat.children && cat.children.length > 0 && (
-                        <div className="pr-3 py-1 space-y-1">
+                        <div className="pe-2 ps-4 py-1 space-y-1 bg-slate-50/60 rounded-lg mb-1">
                           {cat.children.map((sub) => (
                             <Link
                               key={sub.id}
                               to={`/category/${sub.slug}`}
                               onClick={() => setIsMobileMenuOpen(false)}
-                              className="block py-1 text-[11px] text-[#687280] hover:text-[#08606B]"
+                              className="block py-1 text-[11px] text-[#5f6870] hover:text-[#08606B] transition-colors"
                             >
                               • {sub.name_ar}
                             </Link>
@@ -725,8 +834,8 @@ export const Header: React.FC = () => {
               </div>
 
               {/* Dynamic Information & Navigation links */}
-              <div className="pt-2">
-                <h4 className="text-xs font-bold text-[#687280] uppercase mb-2">روابط سريعة ومعلومات</h4>
+              <div className="pt-3 border-t border-slate-100">
+                <h4 className="text-[11px] font-bold text-[#5f6870] uppercase mb-2">روابط سريعة ومعلومات</h4>
                 <div className="space-y-2 text-xs">
                   {headerNavLinks.length > 0 ? (
                     headerNavLinks.map(item => (
@@ -734,24 +843,51 @@ export const Header: React.FC = () => {
                         key={item.id} 
                         to={item.url} 
                         onClick={() => setIsMobileMenuOpen(false)} 
-                        className="block text-[#687280] hover:text-[#04383f] font-medium"
+                        className="block text-[#5f6870] hover:text-[#04383f] font-medium py-1 transition-colors"
                       >
                         {item.label}
                       </Link>
                     ))
                   ) : (
                     <>
-                      <Link to="/page/about" onClick={() => setIsMobileMenuOpen(false)} className="block text-[#687280] hover:text-[#04383f]">عن مول المصطفى</Link>
-                      <Link to="/page/delivery" onClick={() => setIsMobileMenuOpen(false)} className="block text-[#687280] hover:text-[#04383f]">سياسة الشحن والتوصيل</Link>
-                      <Link to="/page/returns" onClick={() => setIsMobileMenuOpen(false)} className="block text-[#687280] hover:text-[#04383f]">سياسة الاسترجاع</Link>
-                      <Link to="/account" onClick={() => setIsMobileMenuOpen(false)} className="block text-[#687280] hover:text-[#04383f]">تتبع طلباتي</Link>
+                      <Link to="/page/about" onClick={() => setIsMobileMenuOpen(false)} className="block text-[#5f6870] hover:text-[#04383f] py-1 transition-colors">عن مول المصطفى</Link>
+                      <Link to="/page/delivery" onClick={() => setIsMobileMenuOpen(false)} className="block text-[#5f6870] hover:text-[#04383f] py-1 transition-colors">سياسة الشحن والتوصيل</Link>
+                      <Link to="/page/returns" onClick={() => setIsMobileMenuOpen(false)} className="block text-[#5f6870] hover:text-[#04383f] py-1 transition-colors">سياسة الاسترجاع والضمان</Link>
+                      <Link to="/account" onClick={() => setIsMobileMenuOpen(false)} className="block text-[#5f6870] hover:text-[#04383f] py-1 transition-colors">تتبع طلباتي</Link>
                     </>
                   )}
                 </div>
               </div>
+
+              {/* Customer Service & WhatsApp Support */}
+              <div className="pt-3 pb-8 border-t border-slate-100 space-y-2">
+                <span className="text-[11px] font-bold text-[#5f6870] uppercase block">خدمة العملاء والمساعدة</span>
+                <div className="grid grid-cols-2 gap-2">
+                  <a
+                    href={getWhatsAppUrl(settings.whatsapp_number || '201017235514', 'مرحباً مول المصطفى، أرغب في الاستفسار عن: ')}
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="flex items-center justify-center gap-1.5 py-2 px-2.5 bg-[#25D366]/15 hover:bg-[#25D366]/25 text-[#128C7E] rounded-xl text-xs font-bold transition-colors border border-[#25D366]/30"
+                  >
+                    <MessageCircle className="w-3.5 h-3.5 text-[#25D366]" />
+                    <span>واتساب مباشر</span>
+                  </a>
+                  <a
+                    href={`tel:${settings.phone || '01017235514'}`}
+                    className="flex items-center justify-center gap-1.5 py-2 px-2.5 bg-slate-100 hover:bg-slate-200 text-[#04383f] rounded-xl text-xs font-bold transition-colors border border-slate-200"
+                  >
+                    <Phone className="w-3.5 h-3.5 text-[#08606B]" />
+                    <span>اتصل بنا</span>
+                  </a>
+                </div>
+                <div className="text-center pt-2">
+                  <p className="text-[10px] text-[#5f6870]">مول المصطفى © {new Date().getFullYear()} — جميع الحقوق محفوظة</p>
+                </div>
+              </div>
             </div>
           </div>
-        </div>
+        </div>,
+        document.body
       )}
 
       {/* Mobile Location Selector Modal (Centered, Never cut off!) */}
