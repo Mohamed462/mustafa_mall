@@ -139,9 +139,41 @@ CREATE TABLE IF NOT EXISTS coupons (
   is_active INTEGER NOT NULL DEFAULT 1
 );
 
+-- 9. Homepage Sections Table (Dynamic cross-device section ordering & visibility)
+CREATE TABLE IF NOT EXISTS homepage_sections (
+  id TEXT PRIMARY KEY,
+  section_key TEXT NOT NULL UNIQUE,
+  title_ar TEXT NOT NULL,
+  title_en TEXT,
+  subtitle_ar TEXT,
+  is_visible INTEGER NOT NULL DEFAULT 1,
+  is_enabled INTEGER NOT NULL DEFAULT 1,
+  sort_order INTEGER NOT NULL DEFAULT 0,
+  settings_json TEXT NOT NULL DEFAULT '{}',
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
+-- 10. Banners Table (Hero & Promotional Banners)
+CREATE TABLE IF NOT EXISTS banners (
+  id TEXT PRIMARY KEY,
+  title_ar TEXT,
+  subtitle_ar TEXT,
+  image_desktop_url TEXT NOT NULL,
+  image_mobile_url TEXT,
+  link_url TEXT NOT NULL DEFAULT '/offers',
+  cta_text_ar TEXT DEFAULT 'تسوق الآن',
+  sort_order INTEGER DEFAULT 0,
+  is_active INTEGER NOT NULL DEFAULT 1,
+  show_overlay_text INTEGER NOT NULL DEFAULT 1,
+  updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+);
+
 -- Indexes for lightning fast queries
 CREATE INDEX IF NOT EXISTS idx_products_category ON products(category_id);
 CREATE INDEX IF NOT EXISTS idx_products_is_active ON products(is_active);
 CREATE INDEX IF NOT EXISTS idx_products_slug ON products(slug);
 CREATE INDEX IF NOT EXISTS idx_categories_slug ON categories(slug);
 CREATE INDEX IF NOT EXISTS idx_orders_order_number ON orders(order_number);
+CREATE INDEX IF NOT EXISTS idx_homepage_sections_key ON homepage_sections(section_key);
+CREATE INDEX IF NOT EXISTS idx_banners_sort ON banners(sort_order);
+
