@@ -74,6 +74,26 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
       is_active: Boolean(r.is_active),
     }));
 
+    // 7. Fetch Site Content (banners, sections, etc.) if table exists
+    let contentMap: Record<string, any> = {};
+    try {
+      await env.DB.prepare(`
+        CREATE TABLE IF NOT EXISTS site_content (
+          key TEXT PRIMARY KEY,
+          value_json TEXT NOT NULL,
+          updated_at TEXT NOT NULL DEFAULT (datetime('now'))
+        )
+      `).run();
+      const contentRes = await env.DB.prepare('SELECT * FROM site_content').all();
+      for (const row of (contentRes.results || []) as any[]) {
+        try {
+          contentMap[row.key] = JSON.parse(row.value_json);
+        } catch {}
+      }
+    } catch (e) {
+      console.warn('site_content query warning:', e);
+    }
+
     return new Response(JSON.stringify({
       success: true,
       data: {
@@ -88,6 +108,10 @@ export const onRequestGet: PagesFunction<Env> = async (context) => {
         brands: brandsRes.results || [],
         products: formattedProducts,
         print_services: printServicesRes.results || [],
+        banners: contentMap['banners'] || null,
+        homepage_sections: contentMap['homepage_sections'] || null,
+        cms_pages: contentMap['cms_pages'] || null,
+        nav_items: contentMap['nav_items'] || null,
       }
     }), { headers, status: 200 });
   } catch (err: any) {

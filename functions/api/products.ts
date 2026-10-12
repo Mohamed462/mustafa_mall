@@ -111,3 +111,24 @@ export const onRequestPost: PagesFunction<Env> = async (context) => {
     return new Response(JSON.stringify({ success: false, error: err.message }), { headers, status: 500 });
   }
 };
+
+export const onRequestDelete: PagesFunction<Env> = async (context) => {
+  const { env, request } = context;
+  const url = new URL(request.url);
+  const id = url.searchParams.get('id');
+
+  if (!env.DB) {
+    return new Response(JSON.stringify({ success: false, message: 'D1 not bound' }), { headers, status: 200 });
+  }
+
+  if (!id) {
+    return new Response(JSON.stringify({ success: false, error: 'Missing product id' }), { headers, status: 400 });
+  }
+
+  try {
+    await env.DB.prepare('DELETE FROM products WHERE id = ?').bind(id).run();
+    return new Response(JSON.stringify({ success: true, message: 'Product deleted from D1' }), { headers, status: 200 });
+  } catch (err: any) {
+    return new Response(JSON.stringify({ success: false, error: err.message }), { headers, status: 500 });
+  }
+};

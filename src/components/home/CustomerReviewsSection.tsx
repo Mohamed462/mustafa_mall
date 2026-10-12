@@ -1,5 +1,5 @@
-import React from 'react';
-import { Star, CheckCircle, Quote, ThumbsUp } from 'lucide-react';
+import React, { useRef } from 'react';
+import { Star, CheckCircle, Quote, ThumbsUp, ChevronLeft, ChevronRight } from 'lucide-react';
 
 interface Review {
   id: string;
@@ -51,28 +51,67 @@ const REVIEWS: Review[] = [
 ];
 
 export const CustomerReviewsSection: React.FC = () => {
+  const scrollRef = useRef<HTMLDivElement>(null);
+
+  const scrollRight = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: 320, behavior: 'smooth' });
+    }
+  };
+
+  const scrollLeft = () => {
+    if (scrollRef.current) {
+      scrollRef.current.scrollBy({ left: -320, behavior: 'smooth' });
+    }
+  };
+
   return (
-    <section className="max-w-7xl mx-auto px-4 py-8">
-      {/* Header */}
-      <div className="text-center max-w-2xl mx-auto mb-8">
-        <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#08606B] mb-2 bg-[rgba(8,96,107,0.08)] px-3 py-1 rounded-full border border-[rgba(8,96,107,0.2)]">
-          <ThumbsUp className="w-3.5 h-3.5 text-[#00D2D3]" />
-          <span>كلام زباينّا</span>
+    <section className="max-w-7xl mx-auto px-4 py-8 font-arabic">
+      {/* Header with Navigation Arrows */}
+      <div className="flex items-end justify-between mb-6 pb-2.5 border-b border-[rgba(17,21,26,0.11)]">
+        <div>
+          <div className="inline-flex items-center gap-1.5 text-xs font-bold text-[#08606B] mb-1 bg-[rgba(8,96,107,0.08)] px-3 py-0.5 rounded-full border border-[rgba(8,96,107,0.2)]">
+            <ThumbsUp className="w-3.5 h-3.5 text-[#00D2D3]" />
+            <span>كلام زباينّا</span>
+          </div>
+          <h2 className="text-xl sm:text-2xl font-black text-[#04383f] tracking-tight">
+            رأي الناس فينا
+          </h2>
+          <p className="text-xs sm:text-sm text-[#687280] mt-0.5">
+            تجارب حقيقية لعملاء من مختلف محافظات مصر
+          </p>
         </div>
-        <h2 className="text-2xl sm:text-3xl font-black text-[#04383f] tracking-tight">
-          رأي الناس فينا
-        </h2>
-        <p className="text-xs sm:text-sm text-[#687280] mt-1">
-          كلام حقيقي وتجارب ناس جربت واشترت مننا من كل حتة في مصر
-        </p>
+
+        {/* Scroll Buttons */}
+        <div className="flex items-center gap-2">
+          <button
+            type="button"
+            onClick={scrollRight}
+            className="w-8 h-8 rounded-full bg-white border border-[rgba(17,21,26,0.12)] flex items-center justify-center text-[#04383f] hover:bg-[#08606B] hover:text-white transition-all shadow-xs cursor-pointer active:scale-95"
+            aria-label="السابق"
+          >
+            <ChevronRight className="w-4 h-4" />
+          </button>
+          <button
+            type="button"
+            onClick={scrollLeft}
+            className="w-8 h-8 rounded-full bg-white border border-[rgba(17,21,26,0.12)] flex items-center justify-center text-[#04383f] hover:bg-[#08606B] hover:text-white transition-all shadow-xs cursor-pointer active:scale-95"
+            aria-label="التالي"
+          >
+            <ChevronLeft className="w-4 h-4" />
+          </button>
+        </div>
       </div>
 
-      {/* Reviews Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4 sm:gap-5">
+      {/* Horizontal Scrolling Reviews Row */}
+      <div 
+        ref={scrollRef}
+        className="flex items-stretch gap-4 sm:gap-5 overflow-x-auto pb-3 pt-1 snap-x snap-mandatory scrollbar-none select-none scroll-smooth"
+      >
         {REVIEWS.map((rev) => (
           <div
             key={rev.id}
-            className="bg-white rounded-2xl p-5 border border-[rgba(17,21,26,0.11)] shadow-editorial hover:shadow-editorial-hover transition-all duration-300 flex flex-col justify-between text-right hover:border-[#08606B]/40"
+            className="w-[280px] sm:w-[320px] md:w-[350px] shrink-0 snap-start bg-white rounded-2xl p-5 border border-[rgba(17,21,26,0.11)] shadow-editorial hover:shadow-editorial-hover transition-all duration-300 flex flex-col justify-between text-right hover:border-[#08606B]/40"
           >
             <div>
               {/* Top Row: Stars + Quote Icon */}

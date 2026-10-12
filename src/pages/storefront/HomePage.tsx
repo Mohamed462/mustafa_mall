@@ -17,10 +17,10 @@ export const HomePage: React.FC = () => {
 
   const allProducts = products.filter(p => p.is_active);
 
-  // Curated collections
+  // Curated collections (First 6 products per shelf, then view all)
   const offersProducts = allProducts.filter(p => p.original_price_egp && p.original_price_egp > p.price_egp);
-  const newestProducts = [...allProducts].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 5);
-  const bestSellers = [...allProducts].sort((a, b) => b.sales_count - a.sales_count).slice(0, 5);
+  const newestProducts = [...allProducts].sort((a, b) => new Date(b.created_at).getTime() - new Date(a.created_at).getTime()).slice(0, 6);
+  const bestSellers = [...allProducts].sort((a, b) => b.sales_count - a.sales_count).slice(0, 6);
 
   // Sync with live db changes immediately
   useEffect(() => {
@@ -57,7 +57,7 @@ export const HomePage: React.FC = () => {
             key={sec.id}
             title={sec.title_ar && sec.title_ar !== 'عروض وتخفيضات مميزة' && sec.title_ar !== 'عروض حصرية لفترة محدودة' ? sec.title_ar : "عروض متتفوتش"}
             subtitle={sec.subtitle_ar && !sec.subtitle_ar.includes('توفير حقيقي') ? sec.subtitle_ar : "أسعار نزلت على الأرض وخصومات لفترة محدودة!"}
-            products={offersProducts.slice(0, 5)}
+            products={offersProducts.slice(0, 6)}
             viewAllLink="/offers"
             badge="توفير يفرق"
           />

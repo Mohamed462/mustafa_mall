@@ -62,26 +62,28 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ banners }) => {
   };
 
   const bannerInner = (
-    <div className="relative w-full h-full overflow-hidden">
-      {/* Responsive Image with smooth transition */}
-      <picture>
-        <source media="(min-width: 768px)" srcSet={current.image_desktop_url} />
+    <div className="relative w-full h-full overflow-hidden flex items-center justify-center bg-slate-900/5">
+      {/* Responsive Image adapting seamlessly to mobile and desktop */}
+      <picture className="w-full h-full block">
+        {current.image_desktop_url && (
+          <source media="(min-width: 640px)" srcSet={current.image_desktop_url} />
+        )}
         <img
           src={current.image_mobile_url || current.image_desktop_url}
           alt={current.title_ar || 'بانر مول المصطفى'}
           onError={(e) => handleImageError(e, BANNER_FALLBACK_IMAGE)}
           fetchPriority="high"
           decoding="async"
-          className="w-full h-full object-cover transition-all duration-700 transform group-hover:scale-[1.01]"
+          className="w-full h-full object-cover object-center transition-all duration-700 transform group-hover:scale-[1.01]"
         />
       </picture>
     </div>
   );
 
   return (
-    <div className="relative w-full max-w-7xl mx-auto px-4 pt-4 pb-2 font-arabic">
+    <div className="relative w-full max-w-7xl mx-auto px-4 pt-3 sm:pt-4 pb-2 font-arabic">
       <div 
-        className="relative rounded-3xl overflow-hidden shadow-editorial bg-[#f3f4f6] group border border-[rgba(17,21,26,0.11)] select-none"
+        className="relative rounded-2xl sm:rounded-3xl overflow-hidden shadow-editorial bg-[#f3f4f6] group border border-[rgba(17,21,26,0.11)] select-none"
         onMouseEnter={() => setIsPaused(true)}
         onMouseLeave={() => setIsPaused(false)}
         onTouchStart={(e) => setTouchStartX(e.touches[0].clientX)}
@@ -99,8 +101,8 @@ export const HeroCarousel: React.FC<HeroCarouselProps> = ({ banners }) => {
           setTouchStartX(null);
         }}
       >
-        {/* Main Banner Slide Container wrapped in clickable Link or external Anchor */}
-        <div className="relative w-full aspect-[2/1] sm:aspect-[2.4/1] lg:aspect-[3/1] min-h-[240px]">
+        {/* Main Banner Slide Container - Dynamic aspect ratio matching mobile and wide screens */}
+        <div className="relative w-full aspect-[16/9] sm:aspect-[1.85/1] md:aspect-[2.2/1] lg:aspect-[2.4/1]">
           {isExternalUrl(current.link_url) ? (
             <a
               href={current.link_url}

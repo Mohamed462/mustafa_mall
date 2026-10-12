@@ -26,13 +26,14 @@ const CATEGORY_IMAGES: Record<string, string> = {
 };
 
 export const CategoryDiscoveryGrid: React.FC<CategoryDiscoveryGridProps> = ({ categories }) => {
-  const [showAllMobile, setShowAllMobile] = useState(false);
+  const [showAll, setShowAll] = useState(false);
   const { settings } = useStoreSettings();
   
   // Display style is centrally controlled by the store administrator in Admin Panel
   const displayStyle: CategoryDisplayStyle = settings.category_display_style || 'images_only';
 
   const sortedCategories = [...categories].sort((a, b) => a.sort_order - b.sort_order);
+  const displayedCategories = showAll ? sortedCategories : sortedCategories.slice(0, 6);
 
   // Helper to determine link
   const getCategoryTarget = (cat: Category) => {
@@ -125,14 +126,11 @@ export const CategoryDiscoveryGrid: React.FC<CategoryDiscoveryGridProps> = ({ ca
       </div>
 
       {/* Category Cards Grid */}
-      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4 sm:gap-6">
-        {sortedCategories.map((cat, idx) => {
+      <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-3 gap-4 sm:gap-6">
+        {displayedCategories.map((cat) => {
           const { url, isExternal } = getCategoryTarget(cat);
           const bgImage = cat.image_url || CATEGORY_IMAGES[cat.slug] || 'https://images.unsplash.com/photo-1523293182086-7651a899d37f?auto=format&fit=crop&w=800&q=80';
           const isPrintCenter = cat.department_key === 'print_center';
-
-          // Hide categories beyond the first 3 on mobile if not expanded
-          const isHiddenOnMobile = idx >= 3 && !showAllMobile;
 
           // Determine if text overlay should be hidden for this specific card
           // (Hidden if global displayStyle is 'images_only' OR category specifically has hide_title enabled)
@@ -216,7 +214,7 @@ export const CategoryDiscoveryGrid: React.FC<CategoryDiscoveryGridProps> = ({ ca
             displayStyle === 'minimal' 
               ? 'bg-white shadow-sm hover:shadow-lg' 
               : 'aspect-[16/10] sm:aspect-[4/3]'
-          } ${isHiddenOnMobile ? 'hidden sm:block' : 'block'}`;
+          }`;
 
           return isExternal ? (
             <a
@@ -242,23 +240,23 @@ export const CategoryDiscoveryGrid: React.FC<CategoryDiscoveryGridProps> = ({ ca
         })}
       </div>
 
-      {/* Mobile "تصفح باقي الأقسام" Toggle Button */}
-      {sortedCategories.length > 3 && (
-        <div className="sm:hidden mt-5 pt-2 text-center">
+      {/* "تصفح باقي الأقسام" Toggle Button */}
+      {sortedCategories.length > 6 && (
+        <div className="mt-6 text-center">
           <TextureButton
             variant="secondary"
             size="md"
-            onClick={() => setShowAllMobile(!showAllMobile)}
-            className="w-full gap-2 justify-center font-bold text-xs"
+            onClick={() => setShowAll(!showAll)}
+            className="inline-flex gap-2 justify-center font-bold text-xs sm:text-sm px-6 py-2.5 mx-auto"
           >
-            {showAllMobile ? (
+            {showAll ? (
               <>
                 <span>عرض أقل</span>
                 <ChevronUp className="w-4 h-4 text-[#08606B]" />
               </>
             ) : (
               <>
-                <span>تصفح باقي الأقسام ({sortedCategories.length - 3}+)</span>
+                <span>عرض باقي الأقسام ({sortedCategories.length - 6}+)</span>
                 <ChevronDown className="w-4 h-4 text-[#08606B]" />
               </>
             )}

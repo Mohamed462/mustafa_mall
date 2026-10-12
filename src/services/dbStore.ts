@@ -305,26 +305,24 @@ function saveState(state: StoreState) {
 // In-Memory active singleton
 let state = loadState();
 
-const getApiBase = () => {
-  if (typeof window === 'undefined') return '';
-  const host = window.location.hostname;
-  if (
-    host === 'localhost' ||
-    host === '127.0.0.1' ||
-    host.startsWith('192.168.') ||
-    host.startsWith('10.') ||
-    host.startsWith('172.') ||
-    !host.includes('.')
-  ) {
-    return 'https://mustafa-mall.pages.dev';
+// Universal dynamic API fetcher that adapts to any environment
+async function apiFetch(path: string, options: RequestInit = {}): Promise<Response> {
+  const cleanPath = path.startsWith('/') ? path : `/${path}`;
+  try {
+    const res = await fetch(cleanPath, options);
+    if (res.status !== 404) {
+      return res;
+    }
+  } catch {
+    // Relative fetch failed, fall through to cloudflare production fallback
   }
-  return '';
-};
+  return fetch(`https://mustafa-mall.pages.dev${cleanPath}`, options);
+}
 
 async function syncFromCloud(): Promise<boolean> {
   if (typeof window === 'undefined') return false;
   try {
-    const res = await fetch(`${getApiBase()}/api/bootstrap?_t=${Date.now()}`, {
+    const res = await apiFetch(`/api/bootstrap?_t=${Date.now()}`, {
       headers: { 'Accept': 'application/json' },
       cache: 'no-store'
     });
@@ -376,9 +374,30 @@ async function syncFromCloud(): Promise<boolean> {
       hasChanges = true;
     }
 
+    if (Array.isArray(data.banners) && data.banners.length > 0) {
+      state.banners = data.banners;
+      hasChanges = true;
+    }
+
+    if (Array.isArray(data.homepage_sections) && data.homepage_sections.length > 0) {
+      state.homepageSections = data.homepage_sections;
+      hasChanges = true;
+    }
+
+    if (Array.isArray(data.cms_pages) && data.cms_pages.length > 0) {
+      state.cmsPages = data.cms_pages;
+      hasChanges = true;
+    }
+
+    if (Array.isArray(data.nav_items) && data.nav_items.length > 0) {
+      state.navItems = data.nav_items;
+      hasChanges = true;
+    }
+
     if (hasChanges) {
       saveState(state);
       window.dispatchEvent(new CustomEvent('al_mostafa_shipping_updated'));
+      window.dispatchEvent(new CustomEvent('al_mostafa_content_updated'));
       window.dispatchEvent(new CustomEvent('al_mostafa_db_updated'));
     }
     return true;
@@ -414,6 +433,40 @@ export const dbStore = {
   // Sync with Cloudflare D1
   syncWithCloud: (): Promise<boolean> => {
     return syncFromCloud();
+  },
+
+  // Push all current local state to Cloudflare D1
+  pushAllToCloud: async (): Promise<boolean> => {
+    try {
+      await apiFetch('/api/settings', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(state.settings),
+      });
+      await apiFetch('/api/content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'banners', data: state.banners }),
+      });
+      await apiFetch('/api/content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'homepage_sections', data: state.homepageSections }),
+      });
+      await apiFetch('/api/content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'nav_items', data: state.navItems }),
+      });
+      await apiFetch('/api/content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'cms_pages', data: state.cmsPages }),
+      });
+      return true;
+    } catch {
+      return false;
+    }
   },
 
   // Reset database back to default seed state
@@ -452,7 +505,7 @@ export const dbStore = {
 
     // Push to Cloudflare D1
     if (typeof window !== 'undefined') {
-      fetch(`${getApiBase()}/api/settings`, {
+      apiFetch('/api/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(state.settings),
@@ -492,7 +545,7 @@ export const dbStore = {
     dbStore.logAudit('update', 'shipping_rates', 'rates', 'تم تحديث أسعار شحن المحافظات');
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('al_mostafa_shipping_updated'));
-      fetch(`${getApiBase()}/api/settings`, {
+      apiFetch('/api/settings', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ governorate_shipping_rates: rates }),
@@ -560,28 +613,47 @@ export const dbStore = {
 
     saveState(state);
     dbStore.logAudit(isNew ? 'create' : 'update', 'categories', catId, `حفظ الفئة: ${newCat.name_ar}`);
+
+    if (typeof window !== 'undefined') {
+      apiFetch('/api/categories', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(newCat),
+      }).catch(err => console.debug('Category sync error:', err));
+    }
+
     return newCat;
   },
   deleteCategory: (id: string): boolean => {
+    let deleted = false;
     // Check root
     const rootIdx = state.categories.findIndex(c => c.id === id);
     if (rootIdx >= 0) {
       state.categories.splice(rootIdx, 1);
       saveState(state);
-      return true;
-    }
-    // Check children
-    for (const parent of state.categories) {
-      if (parent.children) {
-        const childIdx = parent.children.findIndex(c => c.id === id);
-        if (childIdx >= 0) {
-          parent.children.splice(childIdx, 1);
-          saveState(state);
-          return true;
+      deleted = true;
+    } else {
+      // Check children
+      for (const parent of state.categories) {
+        if (parent.children) {
+          const childIdx = parent.children.findIndex(c => c.id === id);
+          if (childIdx >= 0) {
+            parent.children.splice(childIdx, 1);
+            saveState(state);
+            deleted = true;
+            break;
+          }
         }
       }
     }
-    return false;
+
+    if (deleted && typeof window !== 'undefined') {
+      apiFetch(`/api/categories?id=${encodeURIComponent(id)}`, {
+        method: 'DELETE',
+      }).catch(err => console.debug('Category delete error:', err));
+    }
+
+    return deleted;
   },
 
   // BRANDS
@@ -690,7 +762,7 @@ export const dbStore = {
     dbStore.logAudit(isNew ? 'create' : 'update', 'products', prodId, `حفظ المنتج: ${fullProduct.name_ar}`);
 
     if (typeof window !== 'undefined') {
-      fetch(`${getApiBase()}/api/products`, {
+      apiFetch('/api/products', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(fullProduct),
@@ -706,6 +778,13 @@ export const dbStore = {
       state.products.splice(idx, 1);
       saveState(state);
       dbStore.logAudit('delete', 'products', id, `حذف المنتج: ${p.name_ar}`);
+
+      if (typeof window !== 'undefined') {
+        apiFetch(`/api/products?id=${encodeURIComponent(id)}`, {
+          method: 'DELETE',
+        }).catch(err => console.debug('D1 product delete sync:', err));
+      }
+
       return true;
     }
     return false;
@@ -729,6 +808,15 @@ export const dbStore = {
     );
 
     saveState(state);
+
+    if (typeof window !== 'undefined') {
+      apiFetch('/api/products', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(p),
+      }).catch(err => console.debug('D1 stock sync:', err));
+    }
+
     return true;
   },
 
@@ -837,7 +925,7 @@ export const dbStore = {
     dbStore.logAudit('create', 'orders', orderId, `إنشاء طلب جديد رقم ${orderNumber}`);
 
     if (typeof window !== 'undefined') {
-      fetch(`${getApiBase()}/api/orders`, {
+      apiFetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(newOrder),
@@ -934,7 +1022,7 @@ export const dbStore = {
     dbStore.logAudit('update', 'orders', orderId, `تحديث حالة الطلب ${order.order_number} إلى ${toStatus}`);
 
     if (typeof window !== 'undefined') {
-      fetch(`${getApiBase()}/api/orders`, {
+      apiFetch('/api/orders', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ action: 'update_status', id: orderId, order_status: toStatus }),
@@ -1058,6 +1146,15 @@ export const dbStore = {
       state.banners.push(newBanner);
     }
     saveState(state);
+
+    if (typeof window !== 'undefined') {
+      apiFetch('/api/content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'banners', data: state.banners }),
+      }).catch(err => console.debug('Banners sync error:', err));
+    }
+
     return newBanner;
   },
   deleteBanner: (id: string): boolean => {
@@ -1065,6 +1162,15 @@ export const dbStore = {
     if (idx >= 0) {
       state.banners.splice(idx, 1);
       saveState(state);
+
+      if (typeof window !== 'undefined') {
+        apiFetch('/api/content', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key: 'banners', data: state.banners }),
+        }).catch(err => console.debug('Banners sync error:', err));
+      }
+
       return true;
     }
     return false;
@@ -1086,6 +1192,11 @@ export const dbStore = {
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('al_mostafa_content_updated'));
       window.dispatchEvent(new CustomEvent('al_mostafa_db_updated'));
+      apiFetch('/api/content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'homepage_sections', data: state.homepageSections }),
+      }).catch(err => console.debug('Sections sync error:', err));
     }
     return true;
   },
@@ -1095,6 +1206,11 @@ export const dbStore = {
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('al_mostafa_content_updated'));
       window.dispatchEvent(new CustomEvent('al_mostafa_db_updated'));
+      apiFetch('/api/content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'homepage_sections', data: state.homepageSections }),
+      }).catch(err => console.debug('Sections sync error:', err));
     }
   },
   resetHomepageSectionsToDefault: (): HomepageSection[] => {
@@ -1103,6 +1219,11 @@ export const dbStore = {
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('al_mostafa_content_updated'));
       window.dispatchEvent(new CustomEvent('al_mostafa_db_updated'));
+      apiFetch('/api/content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'homepage_sections', data: state.homepageSections }),
+      }).catch(err => console.debug('Sections sync error:', err));
     }
     return [...state.homepageSections];
   },
@@ -1131,6 +1252,13 @@ export const dbStore = {
       state.cmsPages.push(newPage);
     }
     saveState(state);
+    if (typeof window !== 'undefined') {
+      apiFetch('/api/content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'cms_pages', data: state.cmsPages }),
+      }).catch(err => console.debug('CMS sync error:', err));
+    }
     return newPage;
   },
   deleteCmsPage: (id: string): boolean => {
@@ -1140,6 +1268,15 @@ export const dbStore = {
       state.cmsPages.splice(idx, 1);
       saveState(state);
       dbStore.logAudit('delete', 'cms_pages', id, `حذف صفحة تعريفية: ${title}`);
+
+      if (typeof window !== 'undefined') {
+        apiFetch('/api/content', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ key: 'cms_pages', data: state.cmsPages }),
+        }).catch(err => console.debug('CMS sync error:', err));
+      }
+
       return true;
     }
     return false;
@@ -1257,6 +1394,11 @@ export const dbStore = {
     if (typeof window !== 'undefined') {
       window.dispatchEvent(new CustomEvent('al_mostafa_nav_updated'));
       window.dispatchEvent(new CustomEvent('al_mostafa_db_updated'));
+      apiFetch('/api/content', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ key: 'nav_items', data: state.navItems }),
+      }).catch(err => console.debug('Nav sync error:', err));
     }
   },
   updateNavItem: (id: string, updates: Partial<NavItem>): boolean => {

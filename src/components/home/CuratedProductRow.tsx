@@ -54,12 +54,25 @@ export const CuratedProductRow: React.FC<CuratedProductRowProps> = ({
         )}
       </div>
 
-      {/* Products Grid */}
-      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-5 gap-4 sm:gap-5">
+      {/* Products Grid - 6 products row on desktop, 3 on tablet, 2 on mobile */}
+      <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-3 lg:grid-cols-6 gap-3 sm:gap-4">
         {products.map((product) => (
           <ProductCard key={product.id} product={product} />
         ))}
       </div>
+
+      {/* Mobile Quick View All Button */}
+      {viewAllLink && (
+        <div className="mt-4 text-center sm:hidden">
+          <Link
+            to={viewAllLink}
+            className="inline-flex items-center justify-center gap-2 w-full py-2.5 px-4 rounded-xl bg-white border border-[rgba(17,21,26,0.12)] text-[#04383f] font-bold text-xs shadow-xs hover:bg-gray-50 active:scale-[0.98] transition-all"
+          >
+            <span>عرض الكل في {title}</span>
+            <ArrowLeft className="w-3.5 h-3.5 text-[#08606B]" />
+          </Link>
+        </div>
+      )}
     </section>
   );
 };

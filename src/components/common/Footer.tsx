@@ -1,206 +1,148 @@
-import React, { useState, useEffect } from 'react';
+import React from 'react';
 import { Link } from 'react-router-dom';
 import { useStoreSettings } from '../../context/StoreSettingsContext';
 import { getWhatsAppUrl } from '../../utils/formatters';
-import { dbStore } from '../../services/dbStore';
-import { NavItem } from '../../types';
-import { 
-  Phone, 
-  Mail, 
-  MapPin, 
-  MessageCircle, 
-  Printer, 
-  ShieldCheck 
-} from 'lucide-react';
+import { Phone, Mail, MessageCircle, ArrowLeft } from 'lucide-react';
 
 export const Footer: React.FC = () => {
-  const { settings, categories } = useStoreSettings();
-  const [navItems, setNavItems] = useState<NavItem[]>(() => dbStore.getNavItems());
-
-  useEffect(() => {
-    const handleNavUpdate = () => {
-      setNavItems(dbStore.getNavItems());
-    };
-    window.addEventListener('al_mostafa_nav_updated', handleNavUpdate);
-    window.addEventListener('al_mostafa_db_updated', handleNavUpdate);
-    window.addEventListener('storage', handleNavUpdate);
-    return () => {
-      window.removeEventListener('al_mostafa_nav_updated', handleNavUpdate);
-      window.removeEventListener('al_mostafa_db_updated', handleNavUpdate);
-      window.removeEventListener('storage', handleNavUpdate);
-    };
-  }, []);
-
-  const footerNavLinks = navItems.filter(item => item.location === 'footer' && item.is_active);
+  const { settings } = useStoreSettings();
 
   return (
-    <footer className="bg-[#04383f] text-slate-300 pt-12 pb-8 border-t border-[#002830] text-right font-sans">
-      {/* Main Footer Links */}
-      <div className="max-w-7xl mx-auto px-4 py-8">
-        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-8 lg:gap-10">
-          {/* Brand Info */}
-          <div className="lg:col-span-2 space-y-4">
+    <footer className="bg-[#04383f] text-slate-300 pt-10 pb-6 border-t border-[#002830] text-right font-arabic">
+      <div className="max-w-7xl mx-auto px-4">
+        {/* Concise 3-Column Layout */}
+        <div className="grid grid-cols-1 md:grid-cols-12 gap-8 pb-8 border-b border-white/10">
+          
+          {/* Column 1: Brand Info & Direct Contact (5 cols) */}
+          <div className="md:col-span-5 space-y-3.5">
             <Link to="/" className="inline-flex items-center gap-3 group">
               <img 
                 src="/brand-logo-transparent.webp" 
                 alt="مول المصطفى" 
-                className="h-14 w-auto object-contain transition-transform group-hover:scale-105 drop-shadow-md" 
+                className="h-11 sm:h-12 w-auto object-contain transition-transform group-hover:scale-105 drop-shadow-md" 
               />
               <div>
-                <span className="font-bold text-2xl text-white block leading-tight tracking-tight group-hover:text-[#00D2D3] transition-colors">
+                <span className="font-black text-xl sm:text-2xl text-white block leading-tight group-hover:text-[#00D2D3] transition-colors">
                   مول المصطفى
                 </span>
-                <span className="text-[11px] text-[#00D2D3] font-mono tracking-wider block">
-                  AL MOSTAFA MALL // HIGH-END EDITORIAL
+                <span className="text-[11px] text-[#00D2D3] font-bold block">
+                  Al Mostafa Mall
                 </span>
               </div>
             </Link>
+
             <p className="text-xs sm:text-sm text-slate-300/80 leading-relaxed max-w-sm">
-              وجهتكم الأولى في مصر للتسوق المتكامل في مستلزمات المنزل، الإلكترونيات، الأدوات المدرسية والمكتبية، الألعاب، الشنط، الإكسسوارات، ومركز الطباعة الرقمية المتخصص.
+              وجهتكم للتسوق المتكامل في مصر — مستلزمات المنزل، الإلكترونيات، الأدوات المدرسية، ومركز الطباعة مع شحن سريع لجميع المحافظات.
             </p>
-            <div className="pt-2 space-y-2.5 text-xs sm:text-sm">
-              <div className="flex items-center gap-2.5 text-slate-300">
-                <MapPin className="w-4 h-4 text-[#00D2D3] shrink-0" />
-                <span>{settings.address_ar}</span>
-              </div>
-              <div className="flex items-center gap-2.5 text-slate-300">
-                <Phone className="w-4 h-4 text-[#00D2D3] shrink-0" />
-                <a href={`tel:${settings.phone}`} className="hover:text-white font-mono transition-colors">{settings.phone}</a>
-              </div>
-              <div className="flex items-center gap-2.5 text-slate-300">
-                <Mail className="w-4 h-4 text-[#00D2D3] shrink-0" />
-                <a href={`mailto:${settings.support_email}`} className="hover:text-white transition-colors">{settings.support_email}</a>
-              </div>
+
+            <div className="pt-1 flex flex-wrap items-center gap-x-5 gap-y-2 text-xs sm:text-sm">
+              <a 
+                href={`tel:${settings.phone || '01017297414'}`} 
+                className="inline-flex items-center gap-2 text-white hover:text-[#00D2D3] font-mono transition-colors"
+                dir="ltr"
+              >
+                <Phone className="w-3.5 h-3.5 text-[#00D2D3]" />
+                <span>{settings.phone || '01017297414'}</span>
+              </a>
+
+              <a 
+                href={`mailto:${settings.support_email || 'contact@almostafamall.com'}`} 
+                className="inline-flex items-center gap-2 text-slate-300 hover:text-white transition-colors"
+              >
+                <Mail className="w-3.5 h-3.5 text-[#00D2D3]" />
+                <span>{settings.support_email || 'contact@almostafamall.com'}</span>
+              </a>
+            </div>
+
+            <div className="pt-1">
+              <a
+                href={getWhatsAppUrl(settings.whatsapp_number || '01017297414', 'مرحباً مول المصطفى، أحتاج لمساعدة')}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="inline-flex items-center gap-2 px-3.5 py-1.5 rounded-xl bg-[#25D366]/20 text-[#25D366] hover:bg-[#25D366]/30 border border-[#25D366]/30 font-bold transition-all text-xs"
+              >
+                <MessageCircle className="w-4 h-4 shrink-0" />
+                <span>تواصل فوري عبر واتساب (01017297414)</span>
+              </a>
             </div>
           </div>
 
-          {/* Department Links */}
-          <div>
-            <h4 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider mb-4 border-b border-white/10 pb-2.5">
-              أقسام المتجر
+          {/* Column 2: Main Store Links (3 cols) */}
+          <div className="md:col-span-3">
+            <h4 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider mb-3 pb-1 border-b border-white/10">
+              أقسام وروابط سريعة
             </h4>
-            <ul className="space-y-2.5 text-xs sm:text-sm">
-              {categories.slice(0, 7).map((cat) => (
-                <li key={cat.id}>
-                  <Link to={`/category/${cat.slug}`} className="text-slate-300/70 hover:text-white transition-colors">
-                    {cat.name_ar}
-                  </Link>
-                </li>
-              ))}
-            </ul>
-          </div>
-
-          {/* Printing Center & Services */}
-          <div>
-            <h4 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider mb-4 border-b border-white/10 pb-2.5 flex items-center gap-2">
-              <Printer className="w-4 h-4 text-[#00D2D3]" />
-              <span>مركز الطباعة</span>
-            </h4>
-            <ul className="space-y-2.5 text-xs sm:text-sm">
+            <ul className="space-y-2 text-xs sm:text-sm">
               <li>
-                <Link to="/print-center" className="text-slate-300/70 hover:text-white transition-colors">
-                  كتالوج خدمات الطباعة
+                <Link to="/" className="text-slate-300/80 hover:text-white transition-colors flex items-center gap-1.5">
+                  <ArrowLeft className="w-3 h-3 text-[#00D2D3]" />
+                  <span>الصفحة الرئيسية</span>
                 </Link>
               </li>
               <li>
-                <Link to="/print-center" className="text-slate-300/70 hover:text-white transition-colors">
-                  طباعة المستندات والرسائل
+                <Link to="/shop" className="text-slate-300/80 hover:text-white transition-colors flex items-center gap-1.5">
+                  <ArrowLeft className="w-3 h-3 text-[#00D2D3]" />
+                  <span>جميع المنتجات</span>
                 </Link>
               </li>
               <li>
-                <Link to="/print-center" className="text-slate-300/70 hover:text-white transition-colors">
-                  كروت العمل والبروشورات
+                <Link to="/offers" className="text-slate-300/80 hover:text-white transition-colors flex items-center gap-1.5">
+                  <ArrowLeft className="w-3 h-3 text-[#00D2D3]" />
+                  <span>العروض والتخفيضات</span>
                 </Link>
               </li>
               <li>
-                <Link to="/print-center" className="text-slate-300/70 hover:text-white transition-colors">
-                  البانرات والفلكس الإعلاني
-                </Link>
-              </li>
-              <li>
-                <Link to="/print-center" className="text-slate-300/70 hover:text-white transition-colors">
-                  طلب مقايسة وعرض سعر
+                <Link to="/print-center" className="text-slate-300/80 hover:text-white transition-colors flex items-center gap-1.5">
+                  <ArrowLeft className="w-3 h-3 text-[#00D2D3]" />
+                  <span>مركز الطباعة وتصوير الورق</span>
                 </Link>
               </li>
             </ul>
           </div>
 
-          {/* Customer Service & Policies */}
-          <div>
-            <h4 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider mb-4 border-b border-white/10 pb-2.5">
+          {/* Column 3: Customer Care & Policies (4 cols) */}
+          <div className="md:col-span-4">
+            <h4 className="text-xs sm:text-sm font-bold text-white uppercase tracking-wider mb-3 pb-1 border-b border-white/10">
               خدمة العملاء والسياسات
             </h4>
-            <ul className="space-y-2.5 text-xs sm:text-sm">
-              {footerNavLinks.length > 0 ? (
-                footerNavLinks.map((item) => (
-                  <li key={item.id}>
-                    <Link to={item.url} className="text-slate-300/70 hover:text-white transition-colors">
-                      {item.label}
-                    </Link>
-                  </li>
-                ))
-              ) : (
-                <>
-                  <li>
-                    <Link to="/page/about" className="text-slate-300/70 hover:text-white transition-colors">
-                      عن مول المصطفى
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/page/delivery" className="text-slate-300/70 hover:text-white transition-colors">
-                      سياسة الشحن والتوصيل
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/page/returns" className="text-slate-300/70 hover:text-white transition-colors">
-                      سياسة الاسترجاع والاستبدال
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/page/privacy" className="text-slate-300/70 hover:text-white transition-colors">
-                      سياسة الخصوصية
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/page/terms" className="text-slate-300/70 hover:text-white transition-colors">
-                      الشروط والأحكام
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/page/faq" className="text-slate-300/70 hover:text-white transition-colors">
-                      الأسئلة الشائعة
-                    </Link>
-                  </li>
-                  <li>
-                    <Link to="/account" className="text-slate-300/70 hover:text-white transition-colors">
-                      تتبع طلبك
-                    </Link>
-                  </li>
-                </>
-              )}
-              <li className="pt-3">
-                <a
-                  href={getWhatsAppUrl(settings.whatsapp_number, 'مرحباً مول المصطفى، أحتاج لمساعدة')}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="inline-flex items-center gap-2 px-3.5 py-2 rounded-xl bg-[#25D366]/20 text-[#25D366] hover:bg-[#25D366]/30 border border-[#25D366]/40 font-bold transition-all text-xs"
-                >
-                  <MessageCircle className="w-4 h-4 shrink-0" />
-                  <span>دعم مباشر عبر واتساب</span>
-                </a>
+            <ul className="space-y-2 text-xs sm:text-sm">
+              <li>
+                <Link to="/page/delivery" className="text-slate-300/80 hover:text-white transition-colors flex items-center gap-1.5">
+                  <ArrowLeft className="w-3 h-3 text-[#00D2D3]" />
+                  <span>الشحن والتوصيل لجميع المحافظات</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/page/returns" className="text-slate-300/80 hover:text-white transition-colors flex items-center gap-1.5">
+                  <ArrowLeft className="w-3 h-3 text-[#00D2D3]" />
+                  <span>سياسة الاسترجاع والاستبدال</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/account" className="text-slate-300/80 hover:text-white transition-colors flex items-center gap-1.5">
+                  <ArrowLeft className="w-3 h-3 text-[#00D2D3]" />
+                  <span>تتبع حالة طلبك</span>
+                </Link>
+              </li>
+              <li>
+                <Link to="/page/faq" className="text-slate-300/80 hover:text-white transition-colors flex items-center gap-1.5">
+                  <ArrowLeft className="w-3 h-3 text-[#00D2D3]" />
+                  <span>الأسئلة الشائعة والمساعدة</span>
+                </Link>
               </li>
             </ul>
           </div>
-        </div>
-      </div>
 
-      {/* Copyright Bar */}
-      <div className="max-w-7xl mx-auto px-4 pt-6 border-t border-white/10 text-xs text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-4">
-        <p>© {new Date().getFullYear()} مول المصطفى (Al Mostafa Mall) — جميع الحقوق محفوظة.</p>
-        <div className="flex items-center gap-4 text-xs">
-          <Link to="/page/terms" className="text-slate-400 hover:text-white transition-colors">الشروط والأحكام</Link>
-          <span>•</span>
-          <Link to="/page/privacy" className="text-slate-400 hover:text-white transition-colors">الخصوصية</Link>
+        </div>
+
+        {/* Minimal Copyright Bar */}
+        <div className="pt-5 text-xs text-slate-400 flex flex-col sm:flex-row items-center justify-between gap-3 text-center sm:text-right">
+          <p>© {new Date().getFullYear()} مول المصطفى — جميع الحقوق محفوظة.</p>
+          <div className="flex items-center gap-3 text-[11px] text-slate-400">
+            <Link to="/page/terms" className="hover:text-white transition-colors">الشروط والأحكام</Link>
+            <span>•</span>
+            <Link to="/page/privacy" className="hover:text-white transition-colors">الخصوصية</Link>
+          </div>
         </div>
       </div>
     </footer>
